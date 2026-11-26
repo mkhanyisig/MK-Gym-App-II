@@ -88,6 +88,9 @@ export default function ProfileScreen() {
               setFormVersion((n) => n + 1);
             }}
             trackColor={{ true: colors.highlight, false: colors.border }}
+            thumbColor={metric ? colors.onPrimary : undefined}
+            // react-native-web colors the "on" thumb with activeThumbColor instead.
+            {...{ activeThumbColor: colors.onPrimary }}
           />
         </View>
         <MeasurementsForm
