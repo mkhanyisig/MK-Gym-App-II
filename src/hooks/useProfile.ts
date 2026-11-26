@@ -7,7 +7,7 @@ export type Profile = {
   firstName: string;
   lastName: string;
   nickname: string;
-  /** Free text for now, e.g. 02/20/1996 */
+  /** Free text for now, e.g. MM/DD/YYYY */
   dateOfBirth: string;
   email: string;
   /** Body measurements are always stored in metric; the UI converts for display. */
