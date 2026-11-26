@@ -5,12 +5,14 @@ import { AppButton } from '@/components/AppButton';
 import { EllipseImage } from '@/components/EllipseImage';
 import { Screen } from '@/components/Screen';
 import { useProfile } from '@/hooks/useProfile';
-import { colors, font, spacing } from '@/theme';
+import { font, spacing, type ThemeColors, useAppTheme, useThemedStyles } from '@/theme';
 
 /** hero.jpg is 2320 × 3088 (portrait). */
 const HERO_ASPECT = 3088 / 2320;
 
 export default function HomeScreen() {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(makeStyles);
   const { profile } = useProfile();
   const name = profile.nickname || profile.firstName;
   const window = useWindowDimensions();
@@ -29,7 +31,7 @@ export default function HomeScreen() {
           source={require('../../../assets/hero.jpg')}
           width={heroWidth}
           aspectRatio={HERO_ASPECT}
-          borderColor={colors.accent}
+          borderColor={colors.primary}
           borderWidth={3}
         />
       </View>
@@ -45,12 +47,13 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { justifyContent: 'space-between' },
-  header: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.md },
-  title: { fontSize: 34, fontWeight: '800', color: colors.accent },
-  subtitle: { fontSize: font.body, color: colors.textMuted },
-  hero: { alignItems: 'center' },
-  actions: { gap: spacing.sm, marginBottom: spacing.md },
-  link: { textAlign: 'center', color: colors.info, fontSize: font.body, padding: spacing.sm },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    container: { justifyContent: 'space-between' },
+    header: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.md },
+    title: { fontSize: 34, fontWeight: '800', color: c.primary },
+    subtitle: { fontSize: font.body, color: c.textMuted },
+    hero: { alignItems: 'center' },
+    actions: { gap: spacing.sm, marginBottom: spacing.md },
+    link: { textAlign: 'center', color: c.highlight, fontSize: font.body, padding: spacing.sm },
+  });

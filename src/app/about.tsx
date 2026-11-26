@@ -1,9 +1,10 @@
 import { StyleSheet, Text } from 'react-native';
 
 import { Screen } from '@/components/Screen';
-import { colors, font } from '@/theme';
+import { font, type ThemeColors, useThemedStyles } from '@/theme';
 
 export default function AboutScreen() {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Screen scroll>
       <Text style={styles.heading}>Gym Buddy 💪</Text>
@@ -18,7 +19,8 @@ export default function AboutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  heading: { fontSize: font.title, fontWeight: '800', color: colors.accent },
-  body: { fontSize: font.body, lineHeight: 24, color: colors.text },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    heading: { fontSize: font.title, fontWeight: '800', color: c.primary },
+    body: { fontSize: font.body, lineHeight: 24, color: c.text },
+  });
