@@ -1,67 +1,53 @@
-# Gym Buddy 💪
+# My Form.
 
-Track workouts during a session and log body health data. A modern rebuild of the
-[original 2021 Gym Buddy app](https://github.com/mkhanyisig/gym_buddy_App) (Expo SDK 42 → SDK 58).
+_Train with intention._
 
-## Run it
+A personal, offline-first fitness companion for tracking training and physical progress, built with React Native and Expo. Rebuilt from my [original 2021 Gym Buddy app](https://github.com/mkhanyisig/gym_buddy_App).
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/577fbadb-4a43-4155-bca3-701657bce92d" width="200" alt="My Form — Home Dashboard" />
+  <img src="https://github.com/user-attachments/assets/d9ea36f8-c03a-440a-85e2-98d8b706e21d" width="200" alt="My Form — Daily Weight Tracking" />
+</p>
+<p align="center">
+  <sub>Home Dashboard · Daily Weigh-Ins</sub>
+</p>
+
+## Current Features
+
+- **Home dashboard:** a personalized greeting and at-a-glance metric gauges, led by your current weight and its latest change.
+- **Daily weigh-ins:** log one weight per day, then review, edit or delete your history. Data is stored on the device.
+- **Profile and BMI:** name, height and body measurements, with BMI calculated from your latest weigh-in.
+- **Metric or imperial:** kg/cm or lbs/ft-in throughout, with values stored in metric and converted for display.
+- **Workout stopwatch:** start, pause, resume and reset a timer for your session.
+- **Light and dark themes:** follow the system setting or choose one in Settings.
+
+## Tech Stack
+
+- React Native and [Expo](https://expo.dev) (SDK 58)
+- TypeScript
+- Expo Router (file-based navigation)
+- SQLite via `expo-sqlite` for weigh-in history, and AsyncStorage for profile and settings
+- Jest for unit tests
+
+## Getting Started
+
+Requires Node.js and the [Expo Go](https://expo.dev/go) app, or a simulator.
 
 ```sh
 npm install
-npx expo start      # press i / a / w for iOS simulator, Android, or web — or scan the QR with Expo Go
+npx expo start --go   # scan the QR code with Expo Go
+npm run web           # or run it in the browser
 ```
 
-## Checks
+Development checks:
 
 ```sh
-npm run typecheck   # tsc --noEmit
-npm run lint        # expo lint (also flags unformatted code)
-npx expo-doctor
-```
-
-## Code style
-
-Formatting is automatic, so you never fix it by hand.
-
-- **Prettier** formats the code using [`.prettierrc`](.prettierrc): single quotes, 110-character lines, and Prettier's defaults for everything else. [`.prettierignore`](.prettierignore) and `.gitignore` list the files it skips.
-- **VS Code** formats each file when you save it, and applies ESLint fixes. The settings are in [`.vscode/settings.json`](.vscode/settings.json). VS Code will suggest the two extensions this needs: Prettier and ESLint.
-- **Lint** reports unformatted code as an error (`prettier/prettier`), through `eslint-plugin-prettier` in [`eslint.config.js`](eslint.config.js).
-
-```sh
+npm test              # unit tests
+npm run typecheck
+npm run lint          # also flags unformatted code (Prettier)
 npm run format        # format every file
-npm run format:check  # report unformatted files without changing them
 ```
 
-## Stack
+## Project Status
 
-- Expo SDK 58, React Native 0.88, React 19, TypeScript (strict)
-- Expo Router (file-based routes, typed routes)
-- AsyncStorage for on-device persistence
-
-## Structure
-
-```
-src/
-  app/                 # routes (every file is a screen)
-    _layout.tsx        # root stack; About is a modal
-    about.tsx
-    (tabs)/            # bottom tabs: Home, Workouts, Timer, Profile
-  components/          # Screen, AppButton, Card, FormField, MeasurementsForm, BmiCard
-  hooks/               # useProfile (persisted), useStopwatch (drift-free)
-  lib/                 # bmi, unit conversion, formatting, storage helpers
-  data/                # seed workout log from the original app
-  theme.ts             # colors, spacing, typography tokens
-```
-
-## What changed from v1
-
-- Upgraded from Expo SDK 42 / React 16 to SDK 58 / React 19, JS → TypeScript.
-- React Navigation stack → Expo Router with a bottom tab bar.
-- The 648-line `Profile.js` split into a screen, a `useProfile` hook and reusable form components.
-- Profile fields are now actually editable; imperial inputs work and convert to metric for storage.
-- BMI handles missing values instead of showing `NaN`; categories use standard cut-offs.
-- Stopwatch display updates live and is timestamp-based (no drift).
-- Removed hardcoded personal defaults from the profile.
-
-## Next up
-
-Workout logging with sets/reps/weight, progress charts, routines and rest timer.
+My Form. is under active development. Workout session logging and training analytics are coming next; the workout-related gauges on Home are placeholders until then.
