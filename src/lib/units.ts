@@ -25,3 +25,25 @@ export const round = (n: number, digits = 1) => {
   const f = 10 ** digits;
   return Math.round(n * f) / f;
 };
+
+export type FormattedWeight = {
+  /** The figure to display, e.g. "74.8" or "165" (one decimal, trailing ".0" dropped). */
+  value: string;
+  unit: 'kg' | 'lbs';
+  /** For screen readers, e.g. "74.8 kilograms". */
+  spoken: string;
+};
+
+/**
+ * Displays a canonical kilogram weight in the user's units. Weights are always stored
+ * in kg; this is the one place that converts and rounds them for display.
+ * Returns null when there's no weight.
+ */
+export function formatWeight(weightKg: number | null, units: UnitSystem): FormattedWeight | null {
+  if (weightKg == null) return null;
+  const metric = units === 'metric';
+  const value = String(round(metric ? weightKg : kgToLbs(weightKg)));
+  return metric
+    ? { value, unit: 'kg', spoken: `${value} kilograms` }
+    : { value, unit: 'lbs', spoken: `${value} pounds` };
+}

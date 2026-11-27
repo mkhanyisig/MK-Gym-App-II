@@ -1,4 +1,12 @@
-import { cmToFeetInches, feetInchesToCm, kgToLbs, lbsToKg, parseNumber, round } from '@/lib/units';
+import {
+  cmToFeetInches,
+  feetInchesToCm,
+  formatWeight,
+  kgToLbs,
+  lbsToKg,
+  parseNumber,
+  round,
+} from '@/lib/units';
 
 describe('kg ↔ lbs', () => {
   it('uses the exact international pound', () => {
@@ -50,5 +58,25 @@ describe('round', () => {
   it('accepts other precisions', () => {
     expect(round(177.84, 0)).toBe(178);
     expect(round(74.84274, 2)).toBe(74.84);
+  });
+});
+
+describe('formatWeight', () => {
+  it('shows metric weights in kg, rounded to one decimal', () => {
+    expect(formatWeight(74.84274, 'metric')).toEqual({ value: '74.8', unit: 'kg', spoken: '74.8 kilograms' });
+  });
+
+  it('converts to lbs for imperial', () => {
+    // 74.84274 kg is exactly 165 lbs; whole numbers drop the trailing ".0".
+    expect(formatWeight(74.84274, 'imperial')).toEqual({ value: '165', unit: 'lbs', spoken: '165 pounds' });
+  });
+
+  it('rounds half up at the first decimal', () => {
+    expect(formatWeight(80.25, 'metric')?.value).toBe('80.3');
+  });
+
+  it('returns null when there is no weight', () => {
+    expect(formatWeight(null, 'metric')).toBeNull();
+    expect(formatWeight(null, 'imperial')).toBeNull();
   });
 });
