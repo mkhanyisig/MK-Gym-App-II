@@ -15,7 +15,6 @@ import { useNow } from '@/hooks/useNow';
 import { type Profile, useProfile } from '@/hooks/useProfile';
 import { greeting, welcomeLine } from '@/lib/greeting';
 import { kgToLbs, round } from '@/lib/units';
-import { useAppTheme } from "@/theme";
 import { fontFamily, spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
 /** Matches the content width cap so the layout stays readable on tablets and wide windows. */
@@ -99,7 +98,6 @@ export default function HomeScreen() {
   const [portraitSlot, setPortraitSlot] = useState(0);
   const maxPortraitSize = Math.min(Math.round(basePortraitSize * PORTRAIT_GROWTH), contentWidth);
   const portraitSize = Math.min(Math.max(basePortraitSize, portraitSlot), maxPortraitSize);
-  const { colors } = useAppTheme();
 
   return (
     <Screen scroll onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}>
@@ -124,12 +122,12 @@ export default function HomeScreen() {
                   short && styles.wordmarkCompact,
                 ]}
               >
-                My FORM<Text style={{ color: colors.highlight }}>.</Text>
+                My FORM<Text style={styles.titleStop}>.</Text>
               </AppText>
 
               <AppText
                 variant="small"
-                style={[styles.center, styles.tagline,{ color: colors.highlight }]}
+                style={[styles.center, styles.tagline]}
               >
                 Train with intention.
               </AppText>
@@ -194,11 +192,11 @@ const makeStyles = (c: ThemeColors) =>
       paddingBottom: spacing.sm + 2,
     },
     titleText: { color: c.onBrand },
-    // Gold full stop: brandHighlight reads on the red block (brass doesn't).
-    titleStop: { color: c.brandHighlight },
-    // Ivory on the red block (5.44:1 light, 4.62:1 dark); the small top margin keeps
+    // The full stop and tagline share onBrandAccent, so they always match.
+    titleStop: { color: c.onBrandAccent },
+    // Gold on the red block (4.84:1), matching the full stop; the small top margin keeps
     // the "y" descender in "My" from crowding it.
-    tagline: { fontFamily: fontFamily.sansSemiBold, fontSize: 16, lineHeight: 20, color: c.onBrand, marginTop: spacing.xs },
+    tagline: { fontFamily: fontFamily.sansSemiBold, fontSize: 16, lineHeight: 20, color: c.onBrandAccent, marginTop: spacing.xs },
     greeting: { alignItems: 'center', gap: 2 },
     // Takes the first screen's spare height so the portrait can grow and Begin Session
     // stays at the bottom; any space beyond the portrait's maximum is split above and below it.
