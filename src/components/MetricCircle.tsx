@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
   cap: { position: 'absolute' },
   unit: { marginTop: -2 },
   label: { textAlign: 'center' },
-  caption: { fontSize: 12, lineHeight: 16, textAlign: 'center', marginTop: -2 },
+  // Same size as the label above for readability; no negative margin crowding it.
+  caption: { fontSize: 13, lineHeight: 17, textAlign: 'center' },
   pressed: { opacity: 0.7 },
 });

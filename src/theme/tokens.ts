@@ -32,6 +32,8 @@ export type ThemeColors = {
   brand: string;
   /** Text on `brand`. */
   onBrand: string;
+  /** Gold accent on `brand` (e.g. the title's full stop); brass is too dark there. */
+  brandHighlight: string;
 };
 
 export type ColorScheme = 'light' | 'dark';
@@ -52,6 +54,7 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     accent: '#2457E6',
     brand: '#A8474A',
     onBrand: '#FFF8F0',
+    brandHighlight: '#F0CC85',
   },
   dark: {
     background: '#121214',
@@ -68,6 +71,7 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     accent: '#5B9BFF',
     brand: '#B5534F',
     onBrand: '#FFF8F0',
+    brandHighlight: '#F0CC85',
   },
 };
 
