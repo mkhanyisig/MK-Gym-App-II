@@ -1,46 +1,176 @@
 import { Link, router } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { AppButton } from '@/components/AppButton';
-import { EllipseImage } from '@/components/EllipseImage';
+import { AppText } from '@/components/AppText';
+import { EmptyState } from '@/components/EmptyState';
+import { HomeIllustration, useHomeIllustrationSize } from '@/components/HomeIllustration';
+import type { MetricCircleProps } from '@/components/MetricCircle';
+import { MetricGrid } from '@/components/MetricGrid';
+import { Rule } from '@/components/Rule';
 import { Screen } from '@/components/Screen';
-import { useProfile } from '@/hooks/useProfile';
-import { font, spacing, type ThemeColors, useAppTheme, useThemedStyles } from '@/theme';
+import { SectionHeader } from '@/components/SectionHeader';
+import { useNow } from '@/hooks/useNow';
+import { type Profile, useProfile } from '@/hooks/useProfile';
+import { greeting, welcomeLine } from '@/lib/greeting';
+import { kgToLbs, round } from '@/lib/units';
+import { useAppTheme } from "@/theme";
+import { fontFamily, spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
-/** hero.jpg is 2320 × 3088 (portrait). */
-const HERO_ASPECT = 3088 / 2320;
+/** Matches the content width cap so the layout stays readable on tablets and wide windows. */
+const MAX_CONTENT_WIDTH = 560;
+
+/** Space between Home sections: airy, but tight enough to keep Begin Session in reach. */
+const SECTION_GAP = 18;
+
+/** How far the portrait may grow beyond its base size when there's spare height. */
+const PORTRAIT_GROWTH = 1.5;
+
+/** Below this height the wordmark and section spacing are tighter so Begin Session stays in view. */
+const SHORT_SCREEN_HEIGHT = 720;
+
+type Metric = Omit<MetricCircleProps, 'size'>;
+
+/**
+ * The four Home metrics. Only body weight has a real source today (the profile);
+ * the others show neutral placeholders until workout sessions are recorded.
+ * Each links to its section where one exists; Health has no section yet.
+ */
+function buildMetrics(profile: Profile): Metric[] {
+  const metric = profile.units === 'metric';
+  const weight =
+    profile.weightKg == null ? null : String(round(metric ? profile.weightKg : kgToLbs(profile.weightKg)));
+
+  return [
+    weight != null
+      ? {
+          label: 'Weight',
+          value: weight,
+          unit: metric ? 'kg' : 'lbs',
+          href: '/profile',
+          accessibilityLabel: `Weight, ${weight} ${metric ? 'kilograms' : 'pounds'}. Opens your profile.`,
+        }
+      : {
+          label: 'Weight',
+          icon: 'scale-outline',
+          caption: 'Add yours',
+          href: '/profile',
+          accessibilityLabel: 'Weight, not set. Opens your profile to add it.',
+        },
+    {
+      label: 'Last workout',
+      icon: 'barbell-outline',
+      caption: 'None yet',
+      href: '/workouts',
+      accessibilityLabel: 'Last workout, none recorded yet. Opens your workout log.',
+    },
+    {
+      label: 'This week',
+      icon: 'calendar-outline',
+      caption: 'No sessions',
+      href: '/timer',
+      accessibilityLabel: 'This week, no sessions recorded yet. Opens the timer to start one.',
+    },
+    {
+      label: 'Health',
+      icon: 'pulse-outline',
+      caption: 'Coming soon',
+      accessibilityLabel: 'Health metric, coming soon.',
+    },
+  ];
+}
 
 export default function HomeScreen() {
-  const { colors } = useAppTheme();
   const styles = useThemedStyles(makeStyles);
   const { profile } = useProfile();
-  const name = profile.preferredName || profile.firstName;
-  const window = useWindowDimensions();
-  // Fit the ellipse to small screens too: whichever limit is tighter wins.
-  const heroWidth = Math.min(window.width * 0.65, (window.height * 0.4) / HERO_ASPECT);
+  const now = useNow();
+  const { width, height } = useWindowDimensions();
+  const short = height < SHORT_SCREEN_HEIGHT;
+  const basePortraitSize = useHomeIllustrationSize();
+
+  const name = profile.preferredName.trim() || profile.firstName.trim();
+  const contentWidth = Math.min(width - spacing.md * 2, MAX_CONTENT_WIDTH);
+  // Visible height of the scroll area, so the first screen can end with Begin Session.
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const firstScreenMinHeight = viewportHeight > 0 ? viewportHeight - spacing.md * 2 : undefined;
+  // The portrait grows into the first screen's spare height, up to 1.5× its base diameter
+  // (and never wider than the content). Short phones have no spare height, so it stays at base.
+  const [portraitSlot, setPortraitSlot] = useState(0);
+  const maxPortraitSize = Math.min(Math.round(basePortraitSize * PORTRAIT_GROWTH), contentWidth);
+  const portraitSize = Math.min(Math.max(basePortraitSize, portraitSlot), maxPortraitSize);
+  const { colors } = useAppTheme();
 
   return (
-    <Screen style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Gym Buddy 💪</Text>
-        <Text style={styles.subtitle}>{name ? `Welcome back, ${name}.` : "Let's get it!"}</Text>
-      </View>
+    <Screen scroll onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}>
+      <View style={styles.page}>
+        {/* First screen: everything down to Begin Session, which sits at the bottom of the view.
+            Recent starts just below, revealed by scrolling. */}
+        <View
+          style={[styles.firstScreen, short && styles.firstScreenCompact, { minHeight: firstScreenMinHeight }]}
+        >
+          <View style={styles.brand}>
+            <View style={styles.titleBadge}>
+              <AppText
+                variant="wordmark"
+                accessibilityRole="header"
+                accessibilityLabel="My Form"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                maxFontSizeMultiplier={1}
+                style={[
+                  styles.center,
+                  styles.titleText,
+                  short && styles.wordmarkCompact,
+                ]}
+              >
+                My FORM<Text style={{ color: colors.highlight }}>.</Text>
+              </AppText>
 
-      <View style={styles.hero}>
-        <EllipseImage
-          source={require('../../../assets/hero.jpg')}
-          width={heroWidth}
-          aspectRatio={HERO_ASPECT}
-          borderColor={colors.primary}
-          borderWidth={3}
-        />
-      </View>
+              <AppText
+                variant="small"
+                style={[styles.center, styles.tagline,{ color: colors.highlight }]}
+              >
+                Train with intention.
+              </AppText>
+            </View>
+          </View>
 
-      <View style={styles.actions}>
-        <AppButton title="Start a workout" onPress={() => router.navigate('/timer')} />
-        <AppButton title="View workout log" variant="secondary" onPress={() => router.navigate('/workouts')} />
-        <Link href="/about" style={styles.link}>
-          About Gym Buddy
+          <View style={styles.greeting}>
+            <AppText variant="greeting" style={styles.center}>
+              {welcomeLine(name)}
+            </AppText>
+            <AppText variant="body" tone="muted" style={styles.center}>
+              {greeting(now)}
+            </AppText>
+          </View>
+
+          <View
+            style={[styles.portrait, { minHeight: basePortraitSize }]}
+            onLayout={(e) => setPortraitSlot(Math.floor(e.nativeEvent.layout.height))}
+          >
+            {/* Absolutely positioned so the slot's height comes only from the spare space,
+                never from the image itself; it can then shrink if content above grows. */}
+            <View style={styles.portraitFill}>
+              <HomeIllustration size={portraitSize} />
+            </View>
+          </View>
+
+          <MetricGrid metrics={buildMetrics(profile)} width={contentWidth} />
+
+          <AppButton title="Begin session  →" onPress={() => router.navigate('/timer')} />
+        </View>
+
+        <View style={styles.recent}>
+          <Rule />
+          <SectionHeader title="Recent" />
+          <EmptyState message="No sessions yet." />
+        </View>
+
+        <Link href="/about" style={styles.about}>
+          <AppText variant="small" tone="muted">
+            About My Form.
+          </AppText>
         </Link>
       </View>
     </Screen>
@@ -49,11 +179,31 @@ export default function HomeScreen() {
 
 const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
-    container: { justifyContent: 'space-between' },
-    header: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.md },
-    title: { fontSize: 34, fontWeight: '800', color: c.primary },
-    subtitle: { fontSize: font.body, color: c.textMuted },
-    hero: { alignItems: 'center' },
-    actions: { gap: spacing.sm, marginBottom: spacing.md },
-    link: { textAlign: 'center', color: c.highlight, fontSize: font.body, padding: spacing.sm },
+    page: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', gap: SECTION_GAP },
+    firstScreen: { gap: SECTION_GAP },
+    firstScreenCompact: { gap: 12 },
+    center: { textAlign: 'center' },
+    wordmarkCompact: { fontSize: 62, lineHeight: 64 },
+    brand: { alignItems: 'center' },
+    // A compact brand block in the brand red, holding the wordmark and tagline.
+    titleBadge: {
+      backgroundColor: c.brand,
+      borderRadius: 14,
+      paddingHorizontal: 18,
+      paddingTop: 2,
+      paddingBottom: spacing.sm + 2,
+    },
+    titleText: { color: c.onBrand },
+    // Gold full stop: brandHighlight reads on the red block (brass doesn't).
+    titleStop: { color: c.brandHighlight },
+    // Ivory on the red block (5.44:1 light, 4.62:1 dark); the small top margin keeps
+    // the "y" descender in "My" from crowding it.
+    tagline: { fontFamily: fontFamily.sansSemiBold, fontSize: 16, lineHeight: 20, color: c.onBrand, marginTop: spacing.xs },
+    greeting: { alignItems: 'center', gap: 2 },
+    // Takes the first screen's spare height so the portrait can grow and Begin Session
+    // stays at the bottom; any space beyond the portrait's maximum is split above and below it.
+    portrait: { flexGrow: 1 },
+    portraitFill: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
+    recent: { gap: spacing.md },
+    about: { alignSelf: 'center', paddingVertical: spacing.md },
   });

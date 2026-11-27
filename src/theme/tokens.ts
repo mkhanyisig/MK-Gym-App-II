@@ -23,6 +23,17 @@ export type ThemeColors = {
   onDanger: string;
   /** Drop shadow for floating surfaces (menus). */
   shadow: string;
+  /**
+   * Electric blue for metrics with real data or progress (rings, indicators).
+   * Used sparingly; placeholders use `textMuted` instead.
+   */
+  accent: string;
+  /** Brand red (a lighter take on the portrait's burgundy shorts), behind the My FORM title. */
+  brand: string;
+  /** Text on `brand`. */
+  onBrand: string;
+  /** Gold accent on `brand` (e.g. the title's full stop); brass is too dark there. */
+  brandHighlight: string;
 };
 
 export type ColorScheme = 'light' | 'dark';
@@ -40,6 +51,10 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     danger: '#9E3B2F',
     onDanger: '#FFF8F0',
     shadow: '#1F1A15',
+    accent: '#2457E6',
+    brand: '#A8474A',
+    onBrand: '#FFF8F0',
+    brandHighlight: '#F0CC85',
   },
   dark: {
     background: '#121214',
@@ -53,12 +68,17 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     danger: '#D9796B',
     onDanger: '#121214',
     shadow: '#000000',
+    accent: '#5B9BFF',
+    brand: '#B5534F',
+    onBrand: '#FFF8F0',
+    brandHighlight: '#F0CC85',
   },
 };
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 };
 
-export const radius = { sm: 8, md: 12, lg: 20, pill: 999 };
+/** `xs` is the editorial default for buttons; larger radii remain for cards and inputs. */
+export const radius = { xs: 4, sm: 8, md: 12, lg: 20, pill: 999 };
 
 export const font = {
   title: 28,
