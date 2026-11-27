@@ -47,6 +47,9 @@ export function MetricCircle({
   const hasValue = value != null;
 
   const stroke = hasValue ? STROKE_ACTIVE : STROKE_NEUTRAL;
+  // Scale the figure with the circle so "74.4" fits in the 64pt circles of the 2×2 layout
+  // (adjustsFontSizeToFit doesn't shrink text on web). 73pt and larger keep the 22pt style.
+  const valueSize = Math.min(22, Math.round(size * 0.3));
   const color = hasValue ? colors.accent : colors.textMuted;
   // Arc ends sit at 135° and 45° below the centre (the open bottom quarter).
   const r = (size - stroke) / 2;
@@ -74,7 +77,12 @@ export function MetricCircle({
         >
           {hasValue ? (
             <>
-              <AppText variant="metricSmall" numberOfLines={1} adjustsFontSizeToFit>
+              <AppText
+                variant="metricSmall"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                style={{ fontSize: valueSize, lineHeight: valueSize + 4 }}
+              >
                 {value}
               </AppText>
               {unit ? (
