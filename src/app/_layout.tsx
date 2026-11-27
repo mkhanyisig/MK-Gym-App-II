@@ -3,6 +3,7 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 
+import { DatabaseProvider } from '@/db/DatabaseProvider';
 import { AppThemeProvider, fontAssets, useAppTheme } from '@/theme';
 
 export default function RootLayout() {
@@ -13,7 +14,10 @@ export default function RootLayout() {
 
   return (
     <AppThemeProvider>
-      <ThemedNavigation />
+      {/* Inside the theme so a database error screen is themed too. */}
+      <DatabaseProvider>
+        <ThemedNavigation />
+      </DatabaseProvider>
     </AppThemeProvider>
   );
 }
