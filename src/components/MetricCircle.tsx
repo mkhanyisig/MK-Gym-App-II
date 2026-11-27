@@ -33,7 +33,16 @@ const STROKE_NEUTRAL = 3;
  * get a quiet neutral ring and an icon, never a fake value or progress.
  * (Partial progress fills will need react-native-svg once real data exists.)
  */
-export function MetricCircle({ label, value, unit, icon, caption, href, accessibilityLabel, size }: MetricCircleProps) {
+export function MetricCircle({
+  label,
+  value,
+  unit,
+  icon,
+  caption,
+  href,
+  accessibilityLabel,
+  size,
+}: MetricCircleProps) {
   const { colors } = useAppTheme();
   const hasValue = value != null;
 

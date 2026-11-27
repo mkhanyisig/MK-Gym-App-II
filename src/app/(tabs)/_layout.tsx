@@ -30,7 +30,11 @@ export default function TabsLayout() {
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: tabIcon('home') }} />
+      {/* Home shows the menu beside its title instead of in a header bar. */}
+      <Tabs.Screen
+        name="index"
+        options={{ title: 'Home', headerShown: false, tabBarIcon: tabIcon('home') }}
+      />
       <Tabs.Screen name="workouts" options={{ title: 'Workouts', tabBarIcon: tabIcon('barbell') }} />
       <Tabs.Screen name="timer" options={{ title: 'Timer', tabBarIcon: tabIcon('stopwatch') }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: tabIcon('person') }} />

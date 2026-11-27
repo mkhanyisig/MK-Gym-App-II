@@ -1,0 +1,7 @@
+# Generated or third-party output
+.expo/
+dist/
+web-build/
+ios/
+android/
+package-lock.json

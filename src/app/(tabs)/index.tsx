@@ -5,7 +5,8 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { AppButton } from '@/components/AppButton';
 import { AppText } from '@/components/AppText';
 import { EmptyState } from '@/components/EmptyState';
-import { HomeIllustration, useHomeIllustrationSize } from '@/components/HomeIllustration';
+import { HomeIllustration } from '@/components/HomeIllustration';
+import { MenuButton } from '@/components/MenuButton';
 import type { MetricCircleProps } from '@/components/MetricCircle';
 import { MetricGrid } from '@/components/MetricGrid';
 import { Rule } from '@/components/Rule';
@@ -15,7 +16,6 @@ import { useNow } from '@/hooks/useNow';
 import { type Profile, useProfile } from '@/hooks/useProfile';
 import { greeting, welcomeLine } from '@/lib/greeting';
 import { kgToLbs, round } from '@/lib/units';
-import { useAppTheme } from "@/theme";
 import { fontFamily, spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
 /** Matches the content width cap so the layout stays readable on tablets and wide windows. */
@@ -24,8 +24,12 @@ const MAX_CONTENT_WIDTH = 560;
 /** Space between Home sections: airy, but tight enough to keep Begin Session in reach. */
 const SECTION_GAP = 18;
 
-/** How far the portrait may grow beyond its base size when there's spare height. */
-const PORTRAIT_GROWTH = 1.5;
+/**
+ * The portrait fills whatever height is left on the first screen, between these limits.
+ * Below the minimum (very short phones) the page scrolls instead of shrinking it further.
+ */
+const MIN_PORTRAIT_SIZE = 140;
+const MAX_PORTRAIT_SIZE = 470;
 
 /** Below this height the wordmark and section spacing are tighter so Begin Session stays in view. */
 const SHORT_SCREEN_HEIGHT = 720;
@@ -87,29 +91,34 @@ export default function HomeScreen() {
   const now = useNow();
   const { width, height } = useWindowDimensions();
   const short = height < SHORT_SCREEN_HEIGHT;
-  const basePortraitSize = useHomeIllustrationSize();
 
   const name = profile.preferredName.trim() || profile.firstName.trim();
   const contentWidth = Math.min(width - spacing.md * 2, MAX_CONTENT_WIDTH);
   // Visible height of the scroll area, so the first screen can end with Begin Session.
   const [viewportHeight, setViewportHeight] = useState(0);
   const firstScreenMinHeight = viewportHeight > 0 ? viewportHeight - spacing.md * 2 : undefined;
-  // The portrait grows into the first screen's spare height, up to 1.5× its base diameter
-  // (and never wider than the content). Short phones have no spare height, so it stays at base.
+  // The portrait takes all the height the rest of the first screen leaves over, so
+  // everything from the title to Begin Session fits on screen. Never wider than the screen.
   const [portraitSlot, setPortraitSlot] = useState(0);
-  const maxPortraitSize = Math.min(Math.round(basePortraitSize * PORTRAIT_GROWTH), contentWidth);
-  const portraitSize = Math.min(Math.max(basePortraitSize, portraitSlot), maxPortraitSize);
-  const { colors } = useAppTheme();
+  const maxPortraitSize = Math.min(width, MAX_PORTRAIT_SIZE);
+  const portraitSize = Math.min(Math.max(portraitSlot, MIN_PORTRAIT_SIZE), maxPortraitSize);
 
   return (
     <Screen scroll onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}>
       <View style={styles.page}>
-        {/* First screen: everything down to Begin Session, which sits at the bottom of the view.
+        {/* First screen: everything from the title to Begin Session fills the visible area.
             Recent starts just below, revealed by scrolling. */}
         <View
-          style={[styles.firstScreen, short && styles.firstScreenCompact, { minHeight: firstScreenMinHeight }]}
+          style={[
+            styles.firstScreen,
+            short && styles.firstScreenCompact,
+            { minHeight: firstScreenMinHeight },
+          ]}
         >
+          {/* Home has no header bar: the menu sits beside the title, and its dropdown
+              opens as an overlay, so no space is reserved for it. */}
           <View style={styles.brand}>
+            <MenuButton />
             <View style={styles.titleBadge}>
               <AppText
                 variant="wordmark"
@@ -118,19 +127,12 @@ export default function HomeScreen() {
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 maxFontSizeMultiplier={1}
-                style={[
-                  styles.center,
-                  styles.titleText,
-                  short && styles.wordmarkCompact,
-                ]}
+                style={[styles.center, styles.titleText, short && styles.wordmarkCompact]}
               >
-                My FORM<Text style={{ color: colors.highlight }}>.</Text>
+                My FORM<Text style={styles.titleStop}>.</Text>
               </AppText>
 
-              <AppText
-                variant="small"
-                style={[styles.center, styles.tagline,{ color: colors.highlight }]}
-              >
+              <AppText variant="small" style={[styles.center, styles.tagline]}>
                 Train with intention.
               </AppText>
             </View>
@@ -146,7 +148,7 @@ export default function HomeScreen() {
           </View>
 
           <View
-            style={[styles.portrait, { minHeight: basePortraitSize }]}
+            style={[styles.portrait, { minHeight: MIN_PORTRAIT_SIZE }]}
             onLayout={(e) => setPortraitSlot(Math.floor(e.nativeEvent.layout.height))}
           >
             {/* Absolutely positioned so the slot's height comes only from the spare space,
@@ -183,10 +185,13 @@ const makeStyles = (c: ThemeColors) =>
     firstScreen: { gap: SECTION_GAP },
     firstScreenCompact: { gap: 12 },
     center: { textAlign: 'center' },
-    wordmarkCompact: { fontSize: 62, lineHeight: 64 },
-    brand: { alignItems: 'center' },
-    // A compact brand block in the brand red, holding the wordmark and tagline.
+    wordmarkCompact: { fontSize: 70, lineHeight: 72 },
+    // Menu button and title block share the top row. The button is pinned to the
+    // top-left corner, and the row is pulled up toward the status bar.
+    brand: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, marginTop: -spacing.sm },
+    // The brand block fills the rest of the row, holding the wordmark and tagline.
     titleBadge: {
+      flex: 1,
       backgroundColor: c.brand,
       borderRadius: 14,
       paddingHorizontal: 18,
@@ -194,16 +199,30 @@ const makeStyles = (c: ThemeColors) =>
       paddingBottom: spacing.sm + 2,
     },
     titleText: { color: c.onBrand },
-    // Gold full stop: brandHighlight reads on the red block (brass doesn't).
-    titleStop: { color: c.brandHighlight },
-    // Ivory on the red block (5.44:1 light, 4.62:1 dark); the small top margin keeps
+    // The full stop and tagline share onBrandAccent, so they always match.
+    titleStop: { color: c.onBrandAccent },
+    // Gold on the red block (4.84:1), matching the full stop; the small top margin keeps
     // the "y" descender in "My" from crowding it.
-    tagline: { fontFamily: fontFamily.sansSemiBold, fontSize: 16, lineHeight: 20, color: c.onBrand, marginTop: spacing.xs },
+    tagline: {
+      fontFamily: fontFamily.sansSemiBold,
+      fontSize: 16,
+      lineHeight: 20,
+      color: c.onBrandAccent,
+      marginTop: spacing.xs,
+    },
     greeting: { alignItems: 'center', gap: 2 },
-    // Takes the first screen's spare height so the portrait can grow and Begin Session
-    // stays at the bottom; any space beyond the portrait's maximum is split above and below it.
+    // Takes the first screen's spare height; the portrait is sized to it (see portraitSize),
+    // and any space beyond the portrait's maximum is split above and below it.
     portrait: { flexGrow: 1 },
-    portraitFill: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
+    portraitFill: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     recent: { gap: spacing.md },
     about: { alignSelf: 'center', paddingVertical: spacing.md },
   });

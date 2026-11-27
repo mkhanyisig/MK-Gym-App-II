@@ -28,12 +28,16 @@ export type ThemeColors = {
    * Used sparingly; placeholders use `textMuted` instead.
    */
   accent: string;
-  /** Brand red (a lighter take on the portrait's burgundy shorts), behind the My FORM title. */
+  /** Brand burgundy (matched to the portrait's shorts), behind the My FORM title. Same in both modes. */
   brand: string;
   /** Text on `brand`. */
   onBrand: string;
-  /** Gold accent on `brand` (e.g. the title's full stop); brass is too dark there. */
-  brandHighlight: string;
+  /**
+   * Accent text on `brand`, contrasting with `onBrand`: the title's full stop and tagline
+   * share it so they always match. Must stay readable as small text on `brand` (4.5:1).
+   * The brand block and its text use the same values in light and dark mode.
+   */
+  onBrandAccent: string;
 };
 
 export type ColorScheme = 'light' | 'dark';
@@ -52,9 +56,9 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     onDanger: '#FFF8F0',
     shadow: '#1F1A15',
     accent: '#2457E6',
-    brand: '#A8474A',
+    brand: '#8E3A3E',
     onBrand: '#FFF8F0',
-    brandHighlight: '#F0CC85',
+    onBrandAccent: '#F0CC85',
   },
   dark: {
     background: '#121214',
@@ -69,9 +73,9 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     onDanger: '#121214',
     shadow: '#000000',
     accent: '#5B9BFF',
-    brand: '#B5534F',
+    brand: '#8E3A3E',
     onBrand: '#FFF8F0',
-    brandHighlight: '#F0CC85',
+    onBrandAccent: '#F0CC85',
   },
 };
 

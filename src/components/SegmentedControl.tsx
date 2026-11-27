@@ -12,7 +12,12 @@ type Props<T extends string> = {
 };
 
 /** Pick one of a few options, e.g. System / Light / Dark. */
-export function SegmentedControl<T extends string>({ options, value, onChange, accessibilityLabel }: Props<T>) {
+export function SegmentedControl<T extends string>({
+  options,
+  value,
+  onChange,
+  accessibilityLabel,
+}: Props<T>) {
   const styles = useThemedStyles(makeStyles);
 
   return (

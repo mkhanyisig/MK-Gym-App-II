@@ -58,8 +58,18 @@ export default function ProfileScreen() {
 
       <Card title="Personal info">
         <View style={styles.row}>
-          <FormField flex={1} label="First name" value={draft.firstName} onChangeText={(t) => set('firstName', t)} />
-          <FormField flex={1} label="Last name" value={draft.lastName} onChangeText={(t) => set('lastName', t)} />
+          <FormField
+            flex={1}
+            label="First name"
+            value={draft.firstName}
+            onChangeText={(t) => set('firstName', t)}
+          />
+          <FormField
+            flex={1}
+            label="Last name"
+            value={draft.lastName}
+            onChangeText={(t) => set('lastName', t)}
+          />
         </View>
         <FormField
           label="Preferred name"
