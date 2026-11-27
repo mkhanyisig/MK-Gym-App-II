@@ -9,7 +9,10 @@ import { font, radius, spacing, type ThemeColors, useAppTheme, useThemedStyles }
 type MenuItem = { label: string; icon: ComponentProps<typeof Ionicons>['name']; href: Href };
 
 /** App menu entries. Add future features here. */
-const MENU_ITEMS: MenuItem[] = [{ label: 'Settings', icon: 'settings-outline', href: '/settings' }];
+const MENU_ITEMS: MenuItem[] = [
+  { label: 'Settings', icon: 'settings-outline', href: '/settings' },
+  { label: 'Notifications', icon: 'notifications-outline', href: '/notifications' },
+];
 
 /** Top-left ☰ button that opens the app menu as a dropdown. */
 export function MenuButton() {
