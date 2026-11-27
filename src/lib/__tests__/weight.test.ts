@@ -1,4 +1,6 @@
 import {
+  canImportProfileWeight,
+  currentWeight,
   findEntryForDay,
   isDayKey,
   isValidWeightKg,
@@ -166,5 +168,48 @@ describe('saving from the weight form', () => {
         units: 'imperial',
       }),
     ).toEqual({ kind: 'unchanged', existing: todayEntry });
+  });
+});
+
+describe('currentWeight (the single rule for Home, Profile and BMI)', () => {
+  const entry = (date: string, weightKg: number): WeightEntry => ({
+    id: 1,
+    date,
+    weightKg,
+    createdAt: 'x',
+    updatedAt: 'x',
+  });
+
+  it('prefers the latest weigh-in over the Profile weight', () => {
+    expect(currentWeight(entry('2026-11-27', 74.2), 80)).toEqual({
+      source: 'weigh-in',
+      weightKg: 74.2,
+      date: '2026-11-27',
+    });
+  });
+
+  it('falls back to the Profile weight when there are no weigh-ins', () => {
+    expect(currentWeight(null, 74.84274)).toEqual({ source: 'profile', weightKg: 74.84274 });
+  });
+
+  it('is none when neither exists (or the Profile weight is invalid)', () => {
+    expect(currentWeight(null, null)).toEqual({ source: 'none' });
+    expect(currentWeight(null, 0)).toEqual({ source: 'none' });
+  });
+});
+
+describe('canImportProfileWeight', () => {
+  const base = { profileWeightKg: 74.8, weighInsLoaded: true, entryCount: 0 };
+
+  it('offers the import only with a Profile weight and no weigh-ins, once loaded', () => {
+    expect(canImportProfileWeight(base)).toBe(true);
+  });
+
+  it('does not offer it otherwise', () => {
+    expect(canImportProfileWeight({ ...base, entryCount: 1 })).toBe(false);
+    expect(canImportProfileWeight({ ...base, profileWeightKg: null })).toBe(false);
+    expect(canImportProfileWeight({ ...base, profileWeightKg: -2 })).toBe(false);
+    // Not before weigh-ins have loaded: there might already be some.
+    expect(canImportProfileWeight({ ...base, weighInsLoaded: false })).toBe(false);
   });
 });
