@@ -13,9 +13,10 @@ import { Rule } from '@/components/Rule';
 import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { useNow } from '@/hooks/useNow';
-import { type Profile, useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useProfile';
+import { useWeightEntries } from '@/hooks/useWeightEntries';
 import { greeting, welcomeLine } from '@/lib/greeting';
-import { formatWeight } from '@/lib/units';
+import { weightMetric } from '@/lib/weightMetric';
 import { fontFamily, spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
 /** Matches the content width cap so the layout stays readable on tablets and wide windows. */
@@ -37,29 +38,13 @@ const SHORT_SCREEN_HEIGHT = 720;
 type Metric = Omit<MetricCircleProps, 'size'>;
 
 /**
- * The four Home metrics. Only body weight has a real source today (the profile);
+ * The four Home metrics. Weight comes from weigh-ins (falling back to the Profile weight);
  * the others show neutral placeholders until workout sessions are recorded.
  * Each links to its section where one exists; Health has no section yet.
  */
-function buildMetrics(profile: Profile): Metric[] {
-  const weight = formatWeight(profile.weightKg, profile.units);
-
+function buildMetrics(weight: Metric): Metric[] {
   return [
-    weight != null
-      ? {
-          label: 'Weight',
-          value: weight.value,
-          unit: weight.unit,
-          href: '/weight',
-          accessibilityLabel: `Weight, ${weight.spoken}. Opens your weigh-ins.`,
-        }
-      : {
-          label: 'Weight',
-          icon: 'scale-outline',
-          caption: 'Add yours',
-          href: '/weight',
-          accessibilityLabel: 'Weight, not set. Opens your weigh-ins to log one.',
-        },
+    weight,
     {
       label: 'Last workout',
       icon: 'barbell-outline',
@@ -86,6 +71,7 @@ function buildMetrics(profile: Profile): Metric[] {
 export default function HomeScreen() {
   const styles = useThemedStyles(makeStyles);
   const { profile } = useProfile();
+  const { latest, previous, loaded, error } = useWeightEntries();
   const now = useNow();
   const { width, height } = useWindowDimensions();
   const short = height < SHORT_SCREEN_HEIGHT;
@@ -156,7 +142,19 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <MetricGrid metrics={buildMetrics(profile)} width={contentWidth} />
+          <MetricGrid
+            metrics={buildMetrics(
+              weightMetric({
+                latest,
+                previous,
+                profileWeightKg: profile.weightKg,
+                units: profile.units,
+                loaded,
+                error,
+              }),
+            )}
+            width={contentWidth}
+          />
 
           <AppButton title="Begin session  →" onPress={() => router.navigate('/timer')} />
         </View>
