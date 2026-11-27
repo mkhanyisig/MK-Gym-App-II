@@ -49,6 +49,6 @@ npm run lint          # also flags unformatted code (Prettier)
 npm run format        # format every file
 ```
 
-## Project Status
+## Project Status 🏗️
 
 My Form. is under active development. Workout session logging and training analytics are coming next; the workout-related gauges on Home are placeholders until then.
