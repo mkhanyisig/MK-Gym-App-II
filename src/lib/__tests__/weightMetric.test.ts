@@ -56,15 +56,22 @@ describe('Home weight gauge', () => {
     );
   });
 
-  it('shows the latest weigh-in, ignoring the Profile weight, with no change for a single entry', () => {
+  it('shows the latest weigh-in, ignoring the Profile weight, with a dash and "First log" for a single entry', () => {
     const metric = weightMetric({
       ...ready,
       latest: entry('2026-11-27', 74.2),
       previous: null,
       profileWeightKg: 80,
     });
-    expect(metric).toMatchObject({ value: '74.2', unit: 'kg', href: '/weight' });
-    expect(metric.caption).toBeUndefined();
+    expect(metric).toMatchObject({
+      value: '74.2',
+      unit: 'kg',
+      href: '/weight',
+      caption: 'First log',
+      captionIcon: 'remove',
+      accessibilityLabel:
+        'Weight, 74.2 kilograms, first weigh-in, no change to report yet. Opens your weigh-ins.',
+    });
   });
 
   it('shows the signed change between the two latest weigh-ins', () => {
@@ -75,6 +82,7 @@ describe('Home weight gauge', () => {
       profileWeightKg: 80,
     });
     expect(metric.caption).toBe('−0.6 kg');
+    expect(metric.captionIcon).toBe('arrow-down');
     expect(metric.accessibilityLabel).toMatch(
       /^Weight, 74\.2 kilograms, down 0\.6 kilograms since .+\. Opens your weigh-ins\.$/,
     );
@@ -87,7 +95,7 @@ describe('Home weight gauge', () => {
       previous: entry('2026-11-26', 74.2),
       profileWeightKg: null,
     });
-    expect(metric.caption).toBe('No change');
+    expect(metric).toMatchObject({ caption: 'No change', captionIcon: 'remove' });
   });
 
   it('converts the value and the change for imperial', () => {
@@ -118,5 +126,32 @@ describe('BMI uses the current-weight rule', () => {
 
   it('has no BMI without any weight', () => {
     expect(bmiFor(null, null)).toBeNull();
+  });
+});
+
+describe('Home weight gauge arrow', () => {
+  it('points up for a gain', () => {
+    const metric = weightMetric({
+      ...ready,
+      latest: entry('2026-11-27', 75.4),
+      previous: entry('2026-11-26', 75),
+      profileWeightKg: null,
+    });
+    expect(metric).toMatchObject({ caption: '+0.4 kg', captionIcon: 'arrow-up' });
+  });
+
+  it('shows a dash, not an arrow, when unchanged or with a single weigh-in', () => {
+    const unchanged = { latest: entry('2026-11-27', 75), previous: entry('2026-11-26', 75) };
+    expect(weightMetric({ ...ready, ...unchanged, profileWeightKg: null }).captionIcon).toBe('remove');
+    expect(
+      weightMetric({ ...ready, latest: entry('2026-11-27', 75), previous: null, profileWeightKg: null })
+        .captionIcon,
+    ).toBe('remove');
+  });
+
+  it('keeps "From profile" (no dash) for the Profile fallback', () => {
+    const metric = weightMetric({ ...ready, latest: null, previous: null, profileWeightKg: 80 });
+    expect(metric.caption).toBe('From profile');
+    expect(metric.captionIcon).toBeUndefined();
   });
 });

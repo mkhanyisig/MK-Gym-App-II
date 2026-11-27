@@ -16,6 +16,8 @@ export type MetricCircleProps = {
   icon?: ComponentProps<typeof Ionicons>['name'];
   /** One short line under the label, e.g. "From profile" or "None yet". */
   caption?: string;
+  /** Small icon before the caption, e.g. an arrow for a change. Decorative: say it in accessibilityLabel. */
+  captionIcon?: ComponentProps<typeof Ionicons>['name'];
   /** Makes the whole metric a link, e.g. to Profile to add a missing value. */
   href?: Href;
   /** What a screen reader says for the whole metric. */
@@ -39,6 +41,7 @@ export function MetricCircle({
   unit,
   icon,
   caption,
+  captionIcon,
   href,
   accessibilityLabel,
   size,
@@ -117,9 +120,12 @@ export function MetricCircle({
         {label}
       </AppText>
       {caption ? (
-        <AppText variant="small" tone="muted" style={styles.caption} numberOfLines={1}>
-          {caption}
-        </AppText>
+        <View style={styles.captionRow}>
+          {captionIcon ? <Ionicons name={captionIcon} size={13} color={colors.textMuted} /> : null}
+          <AppText variant="small" tone="muted" style={styles.caption} numberOfLines={1}>
+            {caption}
+          </AppText>
+        </View>
       ) : null}
     </View>
   );
@@ -148,6 +154,7 @@ const styles = StyleSheet.create({
   unit: { marginTop: -2 },
   label: { textAlign: 'center' },
   // Same size as the label above for readability; no negative margin crowding it.
+  captionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 2 },
   caption: { fontSize: 13, lineHeight: 17, textAlign: 'center' },
   pressed: { opacity: 0.7 },
 });

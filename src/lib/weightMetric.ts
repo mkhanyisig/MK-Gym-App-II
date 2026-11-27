@@ -64,15 +64,19 @@ export function weightMetric({ latest, previous, profileWeightKg, units, loaded,
   const formatted = change ? formatWeightChange(change.deltaKg, units) : null;
   const changeSpoken =
     change && formatted ? `, ${formatted.spoken} since ${formatDate(change.sinceDate)}` : '';
+  const moved = formatted && formatted.direction !== 'same' ? formatted : null;
+  // A neutral arrow beside the signed change, or a dash when there's no change to show:
+  // "No change" between two equal weigh-ins; "First log" when there's only one, so no
+  // change to report yet. (Kept short: the 4-across gauges fit about ten characters.)
+  const caption = moved ? `${moved.value} ${moved.unit}` : formatted ? 'No change' : 'First log';
+  const captionIcon = moved ? (moved.direction === 'down' ? 'arrow-down' : 'arrow-up') : 'remove';
+  const spokenChange = changeSpoken || ', first weigh-in, no change to report yet';
   return {
     ...base,
     value: weight.value,
     unit: weight.unit,
-    caption: formatted
-      ? formatted.direction === 'same'
-        ? 'No change'
-        : `${formatted.value} ${formatted.unit}`
-      : undefined,
-    accessibilityLabel: `Weight, ${weight.spoken}${changeSpoken}. Opens your weigh-ins.`,
+    caption,
+    captionIcon,
+    accessibilityLabel: `Weight, ${weight.spoken}${spokenChange}. Opens your weigh-ins.`,
   };
 }
