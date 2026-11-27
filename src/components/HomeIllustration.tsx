@@ -9,15 +9,15 @@ const ILLUSTRATION = require('../../assets/brand/home-illustration.png');
 const MAX_CONTENT_WIDTH = 560;
 
 /**
- * Size for the centred Home portrait: about half the content width, limited by
+ * Size for the centred Home portrait: just over half the content width, limited by
  * screen height so short phones still reach Begin Session with a short scroll,
  * but never so small it stops being the centrepiece.
- * 320×568 → 150, 375×667 → 160, 430×932 → ~200, tablets → 220 at most.
+ * 320×568 → 150, 375×667 → 162, 390×844 → ~205, 430×932 → ~226, tablets → 240 at most.
  */
 export function useHomeIllustrationSize(): number {
   const { width, height } = useWindowDimensions();
   const contentWidth = Math.min(width - spacing.md * 2, MAX_CONTENT_WIDTH);
-  return Math.round(Math.max(150, Math.min(contentWidth * 0.5, height * 0.24, 220)));
+  return Math.round(Math.max(150, Math.min(contentWidth * 0.58, height * 0.243, 240)));
 }
 
 /**

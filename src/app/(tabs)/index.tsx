@@ -1,4 +1,5 @@
 import { Link, router } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { AppButton } from '@/components/AppButton';
@@ -82,35 +83,42 @@ export default function HomeScreen() {
 
   const name = profile.preferredName.trim() || profile.firstName.trim();
   const contentWidth = Math.min(width - spacing.md * 2, MAX_CONTENT_WIDTH);
+  // Visible height of the scroll area, so the first screen can end with Begin Session.
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const firstScreenMinHeight = viewportHeight > 0 ? viewportHeight - spacing.md * 2 : undefined;
 
   return (
-    <Screen scroll>
+    <Screen scroll onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}>
       <View style={styles.page}>
-        <View style={styles.brand}>
-          <AppText variant="wordmark" accessibilityRole="header" style={styles.center}>
-            My Form<Text style={styles.stop}>.</Text>
-          </AppText>
-          <AppText variant="small" tone="muted" style={styles.center}>
-            Train with intention.
-          </AppText>
+        {/* First screen: everything down to Begin Session, which sits at the bottom of the view.
+            Recent starts just below, revealed by scrolling. */}
+        <View style={[styles.firstScreen, { minHeight: firstScreenMinHeight }]}>
+          <View style={styles.brand}>
+            <AppText variant="wordmark" accessibilityRole="header" style={styles.center}>
+              My Form<Text style={styles.stop}>.</Text>
+            </AppText>
+            <AppText variant="small" tone="muted" style={styles.center}>
+              Train with intention.
+            </AppText>
+          </View>
+
+          <View style={styles.greeting}>
+            <AppText variant="greeting" style={styles.center}>
+              {welcomeLine(name)}
+            </AppText>
+            <AppText variant="body" tone="muted" style={styles.center}>
+              {greeting(now)}
+            </AppText>
+          </View>
+
+          <View style={styles.portrait}>
+            <HomeIllustration size={portraitSize} />
+          </View>
+
+          <MetricGrid metrics={buildMetrics(profile)} width={contentWidth} />
+
+          <AppButton title="Begin session  →" onPress={() => router.navigate('/timer')} />
         </View>
-
-        <View style={styles.greeting}>
-          <AppText variant="greeting" style={styles.center}>
-            {welcomeLine(name)}
-          </AppText>
-          <AppText variant="body" tone="muted" style={styles.center}>
-            {greeting(now)}
-          </AppText>
-        </View>
-
-        <View style={styles.portrait}>
-          <HomeIllustration size={portraitSize} />
-        </View>
-
-        <MetricGrid metrics={buildMetrics(profile)} width={contentWidth} />
-
-        <AppButton title="Begin session  →" onPress={() => router.navigate('/timer')} />
 
         <View style={styles.recent}>
           <Rule />
@@ -131,6 +139,9 @@ export default function HomeScreen() {
 const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
     page: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', gap: SECTION_GAP },
+    // Spare height on taller phones is shared evenly between sections, so Begin Session
+    // lands at the bottom of the first screen without one large empty gap.
+    firstScreen: { gap: SECTION_GAP, justifyContent: 'space-between' },
     center: { textAlign: 'center' },
     brand: { alignItems: 'center', gap: 2 },
     stop: { color: c.highlight },
