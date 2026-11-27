@@ -31,7 +31,8 @@ export function FormField({ label, suffix, flex, ...inputProps }: Props) {
 
 const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
-    field: { gap: spacing.xs },
+    // minWidth 0 lets side-by-side fields shrink; a web <input> otherwise keeps its intrinsic width.
+    field: { gap: spacing.xs, minWidth: 0 },
     label: { fontSize: font.small, fontWeight: '600', color: c.textMuted },
     inputRow: {
       flexDirection: 'row',
@@ -42,6 +43,6 @@ const makeStyles = (c: ThemeColors) =>
       borderRadius: radius.sm,
       paddingHorizontal: spacing.md - 4,
     },
-    input: { flex: 1, paddingVertical: spacing.sm + 2, fontSize: font.body, color: c.text },
+    input: { flex: 1, minWidth: 0, paddingVertical: spacing.sm + 2, fontSize: font.body, color: c.text },
     suffix: { fontSize: font.body, color: c.textMuted, marginLeft: spacing.xs },
   });
