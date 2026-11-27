@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import type { ComponentProps } from 'react';
 import type { ColorValue } from 'react-native';
 
+import { MenuButton } from '@/components/MenuButton';
 import { useAppTheme } from '@/theme';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -19,7 +20,11 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        // A slim header on every tab holds the app menu; screens keep their own titles.
+        headerTitle: '',
+        headerLeft: () => <MenuButton />,
+        headerStyle: { backgroundColor: colors.background },
+        headerShadowVisible: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
