@@ -6,9 +6,11 @@ export type UnitSystem = 'metric' | 'imperial';
 export const kgToLbs = (kg: number) => kg / KG_PER_LB;
 export const lbsToKg = (lbs: number) => lbs * KG_PER_LB;
 
+/** Splits a height into feet and inches, with inches to one decimal (180 cm → 5 ft 10.9 in). */
 export function cmToFeetInches(cm: number): { feet: number; inches: number } {
-  const totalInches = Math.round(cm / CM_PER_INCH);
-  return { feet: Math.floor(totalInches / 12), inches: totalInches % 12 };
+  // Round once on the total so 11.96 in becomes the next foot, never "5 ft 12 in".
+  const tenthsOfInch = Math.round((cm / CM_PER_INCH) * 10);
+  return { feet: Math.floor(tenthsOfInch / 120), inches: (tenthsOfInch % 120) / 10 };
 }
 
 export const feetInchesToCm = (feet: number, inches: number) => (feet * 12 + inches) * CM_PER_INCH;

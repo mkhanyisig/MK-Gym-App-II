@@ -33,7 +33,7 @@ export function MeasurementsForm({ units, weightKg, heightCm, onChange }: Props)
   const [weight, setWeight] = useState(() =>
     str(weightKg == null ? null : round(units === 'metric' ? weightKg : kgToLbs(weightKg))),
   );
-  const [height, setHeight] = useState(() => str(heightCm == null ? null : round(heightCm, 0)));
+  const [height, setHeight] = useState(() => str(heightCm == null ? null : round(heightCm)));
   const [feet, setFeet] = useState(() => str(initialFeetInches?.feet ?? null));
   const [inches, setInches] = useState(() => str(initialFeetInches?.inches ?? null));
 
@@ -92,7 +92,7 @@ export function MeasurementsForm({ units, weightKg, heightCm, onChange }: Props)
             suffix="in"
             value={inches}
             onChangeText={(t) => updateFeetInches(feet, t)}
-            keyboardType="number-pad"
+            keyboardType="decimal-pad"
             placeholder="10"
           />
         </View>
