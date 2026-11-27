@@ -14,8 +14,21 @@ npx expo start      # press i / a / w for iOS simulator, Android, or web — or 
 
 ```sh
 npm run typecheck   # tsc --noEmit
-npm run lint        # expo lint
+npm run lint        # expo lint (also flags unformatted code)
 npx expo-doctor
+```
+
+## Code style
+
+Formatting is automatic, so you never fix it by hand.
+
+- **Prettier** formats the code using [`.prettierrc`](.prettierrc): single quotes, 110-character lines, and Prettier's defaults for everything else. [`.prettierignore`](.prettierignore) and `.gitignore` list the files it skips.
+- **VS Code** formats each file when you save it, and applies ESLint fixes. The settings are in [`.vscode/settings.json`](.vscode/settings.json). VS Code will suggest the two extensions this needs: Prettier and ESLint.
+- **Lint** reports unformatted code as an error (`prettier/prettier`), through `eslint-plugin-prettier` in [`eslint.config.js`](eslint.config.js).
+
+```sh
+npm run format        # format every file
+npm run format:check  # report unformatted files without changing them
 ```
 
 ## Stack
