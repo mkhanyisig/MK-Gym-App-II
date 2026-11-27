@@ -23,6 +23,9 @@ const MAX_CONTENT_WIDTH = 560;
 /** Space between Home sections: airy, but tight enough to keep Begin Session in reach. */
 const SECTION_GAP = 18;
 
+/** How far the portrait may grow beyond its base size when there's spare height. */
+const PORTRAIT_GROWTH = 1.5;
+
 type Metric = Omit<MetricCircleProps, 'size'>;
 
 /**
@@ -79,13 +82,18 @@ export default function HomeScreen() {
   const { profile } = useProfile();
   const now = useNow();
   const { width } = useWindowDimensions();
-  const portraitSize = useHomeIllustrationSize();
+  const basePortraitSize = useHomeIllustrationSize();
 
   const name = profile.preferredName.trim() || profile.firstName.trim();
   const contentWidth = Math.min(width - spacing.md * 2, MAX_CONTENT_WIDTH);
   // Visible height of the scroll area, so the first screen can end with Begin Session.
   const [viewportHeight, setViewportHeight] = useState(0);
   const firstScreenMinHeight = viewportHeight > 0 ? viewportHeight - spacing.md * 2 : undefined;
+  // The portrait grows into the first screen's spare height, up to 1.5× its base diameter
+  // (and never wider than the content). Short phones have no spare height, so it stays at base.
+  const [portraitSlot, setPortraitSlot] = useState(0);
+  const maxPortraitSize = Math.min(Math.round(basePortraitSize * PORTRAIT_GROWTH), contentWidth);
+  const portraitSize = Math.max(basePortraitSize, Math.min(portraitSlot, maxPortraitSize));
 
   return (
     <Screen scroll onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}>
@@ -111,7 +119,10 @@ export default function HomeScreen() {
             </AppText>
           </View>
 
-          <View style={styles.portrait}>
+          <View
+            style={[styles.portrait, { minHeight: basePortraitSize }]}
+            onLayout={(e) => setPortraitSlot(Math.floor(e.nativeEvent.layout.height))}
+          >
             <HomeIllustration size={portraitSize} />
           </View>
 
@@ -139,14 +150,14 @@ export default function HomeScreen() {
 const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
     page: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', gap: SECTION_GAP },
-    // Spare height on taller phones is shared evenly between sections, so Begin Session
-    // lands at the bottom of the first screen without one large empty gap.
-    firstScreen: { gap: SECTION_GAP, justifyContent: 'space-between' },
+    firstScreen: { gap: SECTION_GAP },
     center: { textAlign: 'center' },
     brand: { alignItems: 'center', gap: 2 },
     stop: { color: c.highlight },
     greeting: { alignItems: 'center', gap: 2 },
-    portrait: { alignItems: 'center' },
+    // Takes the first screen's spare height so the portrait can grow and Begin Session
+    // stays at the bottom; any space beyond the portrait's maximum is split above and below it.
+    portrait: { flexGrow: 1, alignItems: 'center', justifyContent: 'center' },
     recent: { gap: spacing.md },
     about: { alignSelf: 'center', paddingVertical: spacing.md },
   });
