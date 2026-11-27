@@ -9,7 +9,7 @@ type Props = TextProps & {
   tone?: Tone;
 };
 
-/** Text in one of the My FORM. type styles. Extra `style` is applied last. */
+/** Text in one of the My Form. type styles. Extra `style` is applied last. */
 export function AppText({ variant = 'body', tone = 'text', style, maxFontSizeMultiplier, ...rest }: Props) {
   const { colors } = useAppTheme();
   const color = tone === 'muted' ? colors.textMuted : tone === 'highlight' ? colors.highlight : colors.text;

@@ -8,7 +8,7 @@ import { StintUltraCondensed_400Regular } from '@expo-google-fonts/stint-ultra-c
 import type { TextStyle } from 'react-native';
 
 /**
- * My FORM. type, borrowed from mkhanyisi.xyz:
+ * My Form. type, borrowed from mkhanyisi.xyz:
  * - Stint Ultra Condensed: the wordmark only.
  * - Bodoni Moda: large editorial headings and metrics (never below ~20pt; its hairlines break up).
  * - Libre Franklin: controls, labels, body copy and small values.

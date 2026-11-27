@@ -7,7 +7,7 @@ export default function AboutScreen() {
   const styles = useThemedStyles(makeStyles);
   return (
     <Screen scroll>
-      <Text style={styles.heading}>My FORM.</Text>
+      <Text style={styles.heading}>My Form.</Text>
       <Text style={styles.body}>
         Log and track your gym workouts and body measurements, and get insights on how you&apos;re improving.
       </Text>
