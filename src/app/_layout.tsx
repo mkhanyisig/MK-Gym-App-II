@@ -1,10 +1,11 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
+import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider, type Theme } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { ReminderSync } from '@/components/ReminderSync';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
+import { onCountdownAlertOpened } from '@/notifications/countdown';
 import { AppThemeProvider, fontAssets, useAppTheme } from '@/theme';
 
 export default function RootLayout() {
@@ -25,6 +26,9 @@ export default function RootLayout() {
 
 function ThemedNavigation() {
   const { scheme, colors } = useAppTheme();
+
+  // Tapping a countdown's "Time's up" notification opens the Clock.
+  useEffect(() => onCountdownAlertOpened(() => router.navigate('/clock')), []);
 
   // Navigation chrome (headers, tab bar, modal) reads these colors.
   const navigationTheme = useMemo<Theme>(() => {

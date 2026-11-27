@@ -20,7 +20,7 @@ A personal, offline-first fitness companion for tracking training and physical p
 - **Form:** a summary of your current weight, its latest change and your BMI, with training metrics to come.
 - **Profile and BMI:** name, height and body measurements, with BMI calculated from your latest weigh-in. Open it from the ☰ menu.
 - **Metric or imperial:** kg/cm or lbs/ft-in throughout, with values stored in metric and converted for display.
-- **Clock:** a stopwatch with laps, and a countdown with 30/60/90-second presets or a custom time. Both keep accurate time if you leave the app.
+- **Clock:** a stopwatch with laps, and a countdown with 30/60/90-second presets or a custom time. Both keep time if you leave or close the app, and a finished countdown sends a notification on your phone.
 - **Light and dark themes:** follow the system setting or choose one in Settings.
 
 ## Tech Stack

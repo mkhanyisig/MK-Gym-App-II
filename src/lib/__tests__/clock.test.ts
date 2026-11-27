@@ -1,4 +1,5 @@
 import {
+  countdownAlertAt,
   countdownDone,
   countdownRemaining,
   formatCountdown,
@@ -12,6 +13,8 @@ import {
   pauseStopwatch,
   resetCountdown,
   resetStopwatch,
+  restoreCountdown,
+  restoreStopwatch,
   setCountdownDuration,
   spokenDuration,
   startCountdown,
@@ -191,5 +194,71 @@ describe('countdownRemaining with a stale clock', () => {
     const running = startCountdown(newCountdown(60_000), 10_000);
     // A display tick from before Start must not read as extra time.
     expect(countdownRemaining(running, 5_000)).toBe(60_000);
+  });
+});
+
+describe('countdownAlertAt', () => {
+  it('is the end time while running, and null otherwise', () => {
+    const idle = newCountdown(30_000);
+    expect(countdownAlertAt(idle, 0)).toBeNull();
+    const running = startCountdown(idle, 1_000);
+    expect(countdownAlertAt(running, 2_000)).toBe(31_000);
+    expect(countdownAlertAt(pauseCountdown(running, 2_000), 2_000)).toBeNull();
+  });
+
+  it('is null once the end time has passed (no alert in the past)', () => {
+    const running = startCountdown(newCountdown(30_000), 0);
+    expect(countdownAlertAt(running, 30_000)).toBeNull();
+  });
+});
+
+describe('restoring saved clocks', () => {
+  it('round-trips every stopwatch state through JSON', () => {
+    const running = lapStopwatch(startStopwatch(newStopwatch(), 1_000), 4_000);
+    const paused = pauseStopwatch(running, 6_000);
+    for (const sw of [newStopwatch(), running, paused]) {
+      expect(restoreStopwatch(JSON.parse(JSON.stringify(sw)))).toEqual(sw);
+    }
+  });
+
+  it('keeps a stopwatch counting across an app restart', () => {
+    const saved = JSON.parse(JSON.stringify(startStopwatch(newStopwatch(), 1_000)));
+    const restored = restoreStopwatch(saved)!;
+    expect(stopwatchElapsed(restored, 1_000 + 3_600_000)).toBe(3_600_000);
+  });
+
+  it('round-trips every countdown state, and a finished one stays finished', () => {
+    const running = startCountdown(newCountdown(90_000), 0);
+    const paused = pauseCountdown(running, 10_000);
+    for (const cd of [newCountdown(90_000), running, paused]) {
+      expect(restoreCountdown(JSON.parse(JSON.stringify(cd)))).toEqual(cd);
+    }
+    const restored = restoreCountdown(JSON.parse(JSON.stringify(running)))!;
+    expect(countdownDone(restored, 200_000)).toBe(true);
+    expect(countdownRemaining(restored, 200_000)).toBe(0);
+  });
+
+  it('rejects missing, malformed or inconsistent data', () => {
+    for (const bad of [
+      null,
+      'x',
+      {},
+      { status: 'running', startedAt: null, accumulatedMs: 0, lapMarks: [] },
+      { status: 'paused', startedAt: null, accumulatedMs: -1, lapMarks: [] },
+      { status: 'paused', startedAt: null, accumulatedMs: 5, lapMarks: ['a'] },
+      { status: 'idle', startedAt: null, accumulatedMs: 5, lapMarks: [] },
+    ]) {
+      expect(restoreStopwatch(bad)).toBeNull();
+    }
+    for (const bad of [
+      null,
+      { status: 'running', durationMs: 60_000, remainingMs: 60_000, endsAt: null },
+      { status: 'idle', durationMs: 0, remainingMs: 0, endsAt: null },
+      { status: 'paused', durationMs: 60_000, remainingMs: 90_000, endsAt: null },
+      { status: 'idle', durationMs: 60_000, remainingMs: 10_000, endsAt: null },
+      { status: 'done', durationMs: 60_000, remainingMs: 0, endsAt: null },
+    ]) {
+      expect(restoreCountdown(bad)).toBeNull();
+    }
   });
 });

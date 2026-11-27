@@ -189,3 +189,38 @@ export function parseCountdownInput(minutesText: string, secondsText: string): C
   if (!isValidCountdownMs(durationMs)) return { ok: false, message: 'Set at least 1 second.' };
   return { ok: true, durationMs };
 }
+
+// ── Background alert and persistence ───────────────────────────────────────
+
+/** When a background "Time's up" alert should fire: the end time of a running countdown that hasn't ended. */
+export function countdownAlertAt(cd: Countdown, now: number): number | null {
+  return cd.status === 'running' && cd.endsAt != null && cd.endsAt > now ? cd.endsAt : null;
+}
+
+const isStatus = (v: unknown): v is ClockStatus => v === 'idle' || v === 'running' || v === 'paused';
+const isTime = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+
+/**
+ * A saved stopwatch read back from storage, or null if it isn't a consistent one. Saved
+ * clocks are timestamps, so a stopwatch left running keeps counting while the app is closed.
+ */
+export function restoreStopwatch(value: unknown): Stopwatch | null {
+  if (!isRecord(value) || !isStatus(value.status) || !isTime(value.accumulatedMs)) return null;
+  const { status, accumulatedMs, startedAt, lapMarks } = value;
+  if (!Array.isArray(lapMarks) || !lapMarks.every(isTime)) return null;
+  if (status === 'running' ? !isTime(startedAt) : startedAt !== null) return null;
+  if (status === 'idle' && (accumulatedMs !== 0 || lapMarks.length > 0)) return null;
+  return { status, accumulatedMs, startedAt: status === 'running' ? (startedAt as number) : null, lapMarks };
+}
+
+/** A saved countdown read back from storage, or null if it isn't a consistent one. */
+export function restoreCountdown(value: unknown): Countdown | null {
+  if (!isRecord(value) || !isStatus(value.status) || !isTime(value.remainingMs)) return null;
+  const { status, durationMs, remainingMs, endsAt } = value;
+  if (typeof durationMs !== 'number' || !isValidCountdownMs(durationMs) || remainingMs > durationMs)
+    return null;
+  if (status === 'running' ? !isTime(endsAt) : endsAt !== null) return null;
+  if (status === 'idle' && remainingMs !== durationMs) return null;
+  return { status, durationMs, remainingMs, endsAt: status === 'running' ? (endsAt as number) : null };
+}
