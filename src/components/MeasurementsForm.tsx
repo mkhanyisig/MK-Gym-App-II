@@ -5,7 +5,7 @@ import { FormField } from '@/components/FormField';
 import {
   cmToFeetInches,
   feetInchesToCm,
-  kgToLbs,
+  formatWeight,
   lbsToKg,
   parseNumber,
   round,
@@ -30,9 +30,7 @@ const str = (n: number | null) => (n == null ? '' : String(n));
  */
 export function MeasurementsForm({ units, weightKg, heightCm, onChange }: Props) {
   const initialFeetInches = heightCm == null ? null : cmToFeetInches(heightCm);
-  const [weight, setWeight] = useState(() =>
-    str(weightKg == null ? null : round(units === 'metric' ? weightKg : kgToLbs(weightKg))),
-  );
+  const [weight, setWeight] = useState(() => formatWeight(weightKg, units)?.value ?? '');
   const [height, setHeight] = useState(() => str(heightCm == null ? null : round(heightCm)));
   const [feet, setFeet] = useState(() => str(initialFeetInches?.feet ?? null));
   const [inches, setInches] = useState(() => str(initialFeetInches?.inches ?? null));
