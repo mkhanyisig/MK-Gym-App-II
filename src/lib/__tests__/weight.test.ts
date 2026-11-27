@@ -1,4 +1,12 @@
-import { isDayKey, isValidWeightKg, todayKey, weightChange, type WeightEntry } from '@/lib/weight';
+import {
+  findEntryForDay,
+  isDayKey,
+  isValidWeightKg,
+  planWeightSave,
+  todayKey,
+  weightChange,
+  type WeightEntry,
+} from '@/lib/weight';
 
 describe('todayKey', () => {
   it('formats the local day as YYYY-MM-DD with zero padding', () => {
@@ -96,5 +104,67 @@ describe('weightChange', () => {
       deltaKg: 0,
       sinceDate: '2026-11-26',
     });
+  });
+});
+
+describe('saving from the weight form', () => {
+  const make = (id: number, date: string, weightKg: number): WeightEntry => ({
+    id,
+    date,
+    weightKg,
+    createdAt: '2026-11-20T08:00:00.000Z',
+    updatedAt: '2026-11-20T08:00:00.000Z',
+  });
+  const today = '2026-11-27';
+  const todayEntry = make(2, today, 75);
+  const older = make(1, '2026-11-25', 76);
+
+  it('findEntryForDay finds the day or returns null', () => {
+    expect(findEntryForDay([todayEntry, older], today)).toBe(todayEntry);
+    expect(findEntryForDay([older], today)).toBeNull();
+  });
+
+  it('creates when today has no weigh-in', () => {
+    expect(
+      planWeightSave({ weightKg: 74.8, today, entries: [older], editing: null, units: 'metric' }),
+    ).toEqual({
+      kind: 'create',
+      date: today,
+      weightKg: 74.8,
+    });
+  });
+
+  it('asks to replace when today is already logged with a different value', () => {
+    expect(
+      planWeightSave({ weightKg: 74.2, today, entries: [todayEntry, older], editing: null, units: 'metric' }),
+    ).toEqual({ kind: 'replace', existing: todayEntry, weightKg: 74.2 });
+  });
+
+  it('updates the entry being edited, keeping it (not today) as the target', () => {
+    expect(
+      planWeightSave({
+        weightKg: 75.5,
+        today,
+        entries: [todayEntry, older],
+        editing: older,
+        units: 'metric',
+      }),
+    ).toEqual({ kind: 'update', existing: older, weightKg: 75.5 });
+  });
+
+  it("treats a value that displays the same as unchanged, in the user's units", () => {
+    expect(
+      planWeightSave({ weightKg: 75.04, today, entries: [todayEntry], editing: null, units: 'metric' }),
+    ).toEqual({ kind: 'unchanged', existing: todayEntry });
+    // 75 kg shows as 165.3 lbs; typing 165.3 lbs back is not a change.
+    expect(
+      planWeightSave({
+        weightKg: 165.3 * 0.45359237,
+        today,
+        entries: [todayEntry],
+        editing: null,
+        units: 'imperial',
+      }),
+    ).toEqual({ kind: 'unchanged', existing: todayEntry });
   });
 });

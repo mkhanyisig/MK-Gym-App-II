@@ -47,3 +47,20 @@ export function formatWeight(weightKg: number | null, units: UnitSystem): Format
     ? { value, unit: 'kg', spoken: `${value} kilograms` }
     : { value, unit: 'lbs', spoken: `${value} pounds` };
 }
+
+export type WeightInput =
+  { ok: true; weightKg: number } | { ok: false; reason: 'empty' | 'invalid'; message: string };
+
+/**
+ * Parses a weight typed in the user's units into canonical kg (the input counterpart
+ * of formatWeight). Accepts a comma decimal. Rejects empty, non-numeric, zero and
+ * negative values with a message the UI can show.
+ */
+export function parseWeightInput(text: string, units: UnitSystem): WeightInput {
+  if (text.trim() === '') return { ok: false, reason: 'empty', message: 'Enter your weight.' };
+  const value = parseNumber(text);
+  if (value == null || !Number.isFinite(value) || value <= 0) {
+    return { ok: false, reason: 'invalid', message: 'Enter a weight above zero, like 74.8.' };
+  }
+  return { ok: true, weightKg: units === 'metric' ? value : lbsToKg(value) };
+}

@@ -50,6 +50,7 @@ function ThemedNavigation() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="about" options={{ presentation: 'modal', title: 'About' }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+        <Stack.Screen name="weight" options={{ title: 'Weight', headerBackTitle: 'Home' }} />
       </Stack>
     </ThemeProvider>
   );
