@@ -3,6 +3,7 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 
+import { ReminderSync } from '@/components/ReminderSync';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
 import { AppThemeProvider, fontAssets, useAppTheme } from '@/theme';
 
@@ -51,7 +52,10 @@ function ThemedNavigation() {
         <Stack.Screen name="about" options={{ presentation: 'modal', title: 'About' }} />
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
         <Stack.Screen name="weight" options={{ title: 'Weight', headerBackTitle: 'Home' }} />
+        <Stack.Screen name="notifications" options={{ title: 'Notifications', headerBackTitle: 'Home' }} />
       </Stack>
+      {/* Keeps scheduled weigh-in reminders in step with weigh-ins and the app's lifecycle. */}
+      <ReminderSync />
     </ThemeProvider>
   );
 }
