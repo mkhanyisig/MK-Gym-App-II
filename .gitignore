@@ -40,6 +40,7 @@ yarn-error.*
 /ios
 /android
 
-# personal Claude Code instructions (local only)
+# personal AI agent setup (local only)
 /CLAUDE.md
 /.claude/
+/AGENTS.md
