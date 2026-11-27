@@ -2,45 +2,124 @@ import { Link, router } from 'expo-router';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { AppButton } from '@/components/AppButton';
-import { EllipseImage } from '@/components/EllipseImage';
+import { AppText } from '@/components/AppText';
+import { BrandMark } from '@/components/BrandMark';
+import { EmptyState } from '@/components/EmptyState';
+import { Rule } from '@/components/Rule';
 import { Screen } from '@/components/Screen';
+import { SectionHeader } from '@/components/SectionHeader';
+import { StatBlock } from '@/components/StatBlock';
+import { useNow } from '@/hooks/useNow';
 import { useProfile } from '@/hooks/useProfile';
-import { font, spacing, type ThemeColors, useAppTheme, useThemedStyles } from '@/theme';
+import { formatDateLabel, greeting } from '@/lib/greeting';
+import { kgToLbs, round } from '@/lib/units';
+import { spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
-/** hero.jpg is 2320 × 3088 (portrait). */
-const HERO_ASPECT = 3088 / 2320;
+/** Below this width FORM and FUNCTION stack instead of sitting side by side. */
+const TWO_COLUMN_MIN_WIDTH = 360;
 
 export default function HomeScreen() {
-  const { colors } = useAppTheme();
   const styles = useThemedStyles(makeStyles);
-  const { profile } = useProfile();
-  const name = profile.preferredName || profile.firstName;
-  const window = useWindowDimensions();
-  // Fit the ellipse to small screens too: whichever limit is tighter wins.
-  const heroWidth = Math.min(window.width * 0.65, (window.height * 0.4) / HERO_ASPECT);
+  const { profile, exists } = useProfile();
+  const now = useNow();
+  const { width } = useWindowDimensions();
+
+  const name = profile.preferredName.trim() || profile.firstName.trim();
+  const twoColumn = width >= TWO_COLUMN_MIN_WIDTH;
+
+  const metric = profile.units === 'metric';
+  const weight =
+    profile.weightKg == null ? null : String(round(metric ? profile.weightKg : kgToLbs(profile.weightKg)));
 
   return (
-    <Screen style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Gym Buddy 💪</Text>
-        <Text style={styles.subtitle}>{name ? `Welcome back, ${name}.` : "Let's get it!"}</Text>
-      </View>
+    <Screen scroll>
+      <View style={styles.page}>
+        {/* Welcome */}
+        <View style={styles.masthead}>
+          <View style={styles.wordmarkRow}>
+            <BrandMark />
+            <AppText variant="wordmark" accessibilityRole="header" accessibilityLabel="My FORM.">
+              My FORM<Text style={styles.stop}>.</Text>
+            </AppText>
+          </View>
+          <AppText variant="label" tone="muted">
+            Train with intention.
+          </AppText>
+        </View>
 
-      <View style={styles.hero}>
-        <EllipseImage
-          source={require('../../../assets/hero.jpg')}
-          width={heroWidth}
-          aspectRatio={HERO_ASPECT}
-          borderColor={colors.primary}
-          borderWidth={3}
-        />
-      </View>
+        <View style={styles.welcome}>
+          <AppText variant="label" tone="muted">
+            {formatDateLabel(now)}
+          </AppText>
+          {exists ? (
+            <AppText variant="label" tone="highlight">
+              Welcome back
+            </AppText>
+          ) : null}
+          <AppText variant="greeting">{greeting(now, name)}</AppText>
+          {exists ? null : (
+            <EmptyState
+              message="Welcome to My FORM."
+              action={{ label: 'Set up your profile', href: '/profile' }}
+            />
+          )}
+        </View>
 
-      <View style={styles.actions}>
-        <AppButton title="Start a workout" onPress={() => router.navigate('/timer')} />
-        <AppButton title="View workout log" variant="secondary" onPress={() => router.navigate('/workouts')} />
-        <Link href="/about" style={styles.link}>
-          About Gym Buddy
+        <Rule />
+
+        {/* Today */}
+        <View style={styles.section}>
+          <SectionHeader title="Today" />
+          <View style={styles.today}>
+            <AppText variant="title">No session planned</AppText>
+            <AppText variant="small" tone="muted">
+              Begin an open session and log as you go.
+            </AppText>
+          </View>
+          <AppButton title="Begin session  →" onPress={() => router.navigate('/timer')} />
+        </View>
+
+        <Rule />
+
+        {/* FORM / FUNCTION */}
+        <View style={[styles.stats, twoColumn && styles.statsRow]}>
+          {weight != null ? (
+            <StatBlock
+              style={twoColumn ? styles.stat : undefined}
+              label="Form"
+              value={weight}
+              unit={metric ? 'kg' : 'lbs'}
+              caption="Current weight, from your profile"
+              accessibilityLabel={`Form. Current weight ${weight} ${metric ? 'kilograms' : 'pounds'}.`}
+            />
+          ) : (
+            <StatBlock style={twoColumn ? styles.stat : undefined} label="Form">
+              <EmptyState
+                message="Add your weight to start tracking your form."
+                action={{ label: 'Add weight', href: '/profile' }}
+              />
+            </StatBlock>
+          )}
+
+          {twoColumn ? <View style={styles.columnRule} /> : <Rule />}
+
+          <StatBlock style={twoColumn ? styles.stat : undefined} label="Function">
+            <EmptyState message="No sessions logged yet. Your sessions this week will show here." />
+          </StatBlock>
+        </View>
+
+        <Rule />
+
+        {/* Recent */}
+        <View style={styles.section}>
+          <SectionHeader title="Recent" />
+          <EmptyState message="Your journal is empty. Finished sessions will appear here." />
+        </View>
+
+        <Link href="/about" style={styles.about}>
+          <AppText variant="label" tone="muted">
+            About My FORM.
+          </AppText>
         </Link>
       </View>
     </Screen>
@@ -49,11 +128,17 @@ export default function HomeScreen() {
 
 const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
-    container: { justifyContent: 'space-between' },
-    header: { alignItems: 'center', gap: spacing.xs, marginTop: spacing.md },
-    title: { fontSize: 34, fontWeight: '800', color: c.primary },
-    subtitle: { fontSize: font.body, color: c.textMuted },
-    hero: { alignItems: 'center' },
-    actions: { gap: spacing.sm, marginBottom: spacing.md },
-    link: { textAlign: 'center', color: c.highlight, fontSize: font.body, padding: spacing.sm },
+    // Keep a readable measure on tablets and large web windows.
+    page: { width: '100%', maxWidth: 560, alignSelf: 'center', gap: spacing.lg, paddingBottom: spacing.lg },
+    masthead: { gap: spacing.xs },
+    wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    stop: { color: c.highlight },
+    welcome: { gap: spacing.sm },
+    section: { gap: spacing.md },
+    today: { gap: spacing.xs },
+    stats: { gap: spacing.lg },
+    statsRow: { flexDirection: 'row', gap: spacing.md },
+    stat: { flex: 1 },
+    columnRule: { width: StyleSheet.hairlineWidth, backgroundColor: c.border },
+    about: { alignSelf: 'center', paddingVertical: spacing.md },
   });

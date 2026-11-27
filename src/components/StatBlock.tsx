@@ -10,8 +10,11 @@ type Props = {
   value?: string;
   unit?: string;
   caption?: string;
-  /** Read by screen readers in place of the visual pieces, e.g. "Form. Current weight 74.8 kilograms." */
-  accessibilityLabel: string;
+  /**
+   * When set, the block is read as one element with this label, e.g. "Form. Current weight
+   * 74.8 kilograms." Leave unset when `children` holds a link, so the link stays focusable.
+   */
+  accessibilityLabel?: string;
   children?: ReactNode;
   style?: ViewStyle;
 };
@@ -19,7 +22,7 @@ type Props = {
 /** A labelled metric: small-caps label, a large serif figure and a caption. */
 export function StatBlock({ label, value, unit, caption, accessibilityLabel, children, style }: Props) {
   return (
-    <View style={[styles.container, style]} accessible accessibilityLabel={accessibilityLabel}>
+    <View style={[styles.container, style]} accessible={accessibilityLabel != null} accessibilityLabel={accessibilityLabel}>
       <AppText variant="label" tone="muted">
         {label}
       </AppText>
