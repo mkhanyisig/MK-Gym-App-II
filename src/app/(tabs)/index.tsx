@@ -26,6 +26,9 @@ const SECTION_GAP = 18;
 /** How far the portrait may grow beyond its base size when there's spare height. */
 const PORTRAIT_GROWTH = 1.5;
 
+/** Below this height the wordmark and section spacing are tighter so Begin Session stays in view. */
+const SHORT_SCREEN_HEIGHT = 720;
+
 type Metric = Omit<MetricCircleProps, 'size'>;
 
 /**
@@ -81,7 +84,8 @@ export default function HomeScreen() {
   const styles = useThemedStyles(makeStyles);
   const { profile } = useProfile();
   const now = useNow();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const short = height < SHORT_SCREEN_HEIGHT;
   const basePortraitSize = useHomeIllustrationSize();
 
   const name = profile.preferredName.trim() || profile.firstName.trim();
@@ -100,9 +104,19 @@ export default function HomeScreen() {
       <View style={styles.page}>
         {/* First screen: everything down to Begin Session, which sits at the bottom of the view.
             Recent starts just below, revealed by scrolling. */}
-        <View style={[styles.firstScreen, { minHeight: firstScreenMinHeight }]}>
+        <View
+          style={[styles.firstScreen, short && styles.firstScreenCompact, { minHeight: firstScreenMinHeight }]}
+        >
           <View style={styles.brand}>
-            <AppText variant="wordmark" accessibilityRole="header" style={styles.center}>
+            <AppText
+              variant="wordmark"
+              accessibilityRole="header"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              // Already display-sized: don't scale with system text, which would overflow.
+              maxFontSizeMultiplier={1}
+              style={[styles.center, short && styles.wordmarkCompact]}
+            >
               My Form<Text style={styles.stop}>.</Text>
             </AppText>
             <AppText variant="small" tone="muted" style={styles.center}>
@@ -151,7 +165,9 @@ const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
     page: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', gap: SECTION_GAP },
     firstScreen: { gap: SECTION_GAP },
+    firstScreenCompact: { gap: 14 },
     center: { textAlign: 'center' },
+    wordmarkCompact: { fontSize: 74, lineHeight: 74 },
     brand: { alignItems: 'center', gap: 2 },
     stop: { color: c.highlight },
     greeting: { alignItems: 'center', gap: 2 },
