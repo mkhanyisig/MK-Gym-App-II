@@ -51,7 +51,7 @@ export type TextVariant =
 
 export const textVariants: Record<TextVariant, TextStyle> = {
   // Mixed case: the brand is written "My Form."
-  wordmark: { fontFamily: fontFamily.display, fontSize: 76, lineHeight: 78, letterSpacing: 1 },
+  wordmark: { fontFamily: fontFamily.display, fontSize: 88, lineHeight: 90, letterSpacing: 1 },
   display: { fontFamily: fontFamily.serif, fontSize: 32, lineHeight: 38 },
   metric: { fontFamily: fontFamily.serifBold, fontSize: 36, lineHeight: 42 },
   /** Figures inside metric circles. */
