@@ -15,6 +15,8 @@ import { useNow } from '@/hooks/useNow';
 import { type Profile, useProfile } from '@/hooks/useProfile';
 import { greeting, welcomeLine } from '@/lib/greeting';
 import { kgToLbs, round } from '@/lib/units';
+import { Text } from "react-native";
+import { useAppTheme } from "@/theme";
 import { radius, spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
 /** Matches the content width cap so the layout stays readable on tablets and wide windows. */
@@ -87,6 +89,7 @@ export default function HomeScreen() {
   const { width, height } = useWindowDimensions();
   const short = height < SHORT_SCREEN_HEIGHT;
   const basePortraitSize = useHomeIllustrationSize();
+  const { colors } = useAppTheme();
 
   const name = profile.preferredName.trim() || profile.firstName.trim();
   const contentWidth = Math.min(width - spacing.md * 2, MAX_CONTENT_WIDTH);
@@ -110,18 +113,20 @@ export default function HomeScreen() {
           <View style={styles.brand}>
             <View style={styles.titleBadge}>
               <AppText
-                variant="wordmark"
-                accessibilityRole="header"
-                // Spoken as words, not spelled out ("F-O-R-M").
-                accessibilityLabel="My Form"
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                // Already display-sized: don't scale with system text, which would overflow.
-                maxFontSizeMultiplier={1}
-                style={[styles.center, styles.titleText, short && styles.wordmarkCompact]}
-              >
-                My FORM.
-              </AppText>
+              variant="wordmark"
+              accessibilityRole="header"
+              accessibilityLabel="My Form"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              maxFontSizeMultiplier={1}
+              style={[
+                styles.center,
+                styles.titleText,
+                short && styles.wordmarkCompact,
+              ]}
+            >
+              My FORM<Text style={{ color: colors.highlight }}>.</Text>
+            </AppText>
             </View>
             <AppText variant="small" tone="muted" style={styles.center}>
               Train with intention.
