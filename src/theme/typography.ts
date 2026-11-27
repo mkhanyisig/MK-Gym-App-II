@@ -41,6 +41,7 @@ export type TextVariant =
   | 'wordmark'
   | 'display'
   | 'metric'
+  | 'metricSmall'
   | 'title'
   | 'greeting'
   | 'body'
@@ -49,9 +50,12 @@ export type TextVariant =
   | 'button';
 
 export const textVariants: Record<TextVariant, TextStyle> = {
-  wordmark: { fontFamily: fontFamily.display, fontSize: 56, lineHeight: 58, letterSpacing: 1.5, textTransform: 'uppercase' },
+  // Mixed case: the brand is written "My Form."
+  wordmark: { fontFamily: fontFamily.display, fontSize: 60, lineHeight: 64, letterSpacing: 1 },
   display: { fontFamily: fontFamily.serif, fontSize: 32, lineHeight: 38 },
   metric: { fontFamily: fontFamily.serifBold, fontSize: 36, lineHeight: 42 },
+  /** Figures inside metric circles. */
+  metricSmall: { fontFamily: fontFamily.serifBold, fontSize: 22, lineHeight: 26 },
   title: { fontFamily: fontFamily.serif, fontSize: 26, lineHeight: 32 },
   greeting: { fontFamily: fontFamily.serifItalic, fontSize: 22, lineHeight: 30 },
   body: { fontFamily: fontFamily.sans, fontSize: 16, lineHeight: 23 },
@@ -61,4 +65,4 @@ export const textVariants: Record<TextVariant, TextStyle> = {
 };
 
 /** Large type that would wrap or clip if scaled freely with the system text size. */
-export const cappedVariants: ReadonlySet<TextVariant> = new Set(['wordmark', 'metric', 'display']);
+export const cappedVariants: ReadonlySet<TextVariant> = new Set(['wordmark', 'metric', 'metricSmall', 'display']);

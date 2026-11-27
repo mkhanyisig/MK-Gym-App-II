@@ -23,6 +23,11 @@ export type ThemeColors = {
   onDanger: string;
   /** Drop shadow for floating surfaces (menus). */
   shadow: string;
+  /**
+   * Electric blue for metrics with real data or progress (rings, indicators).
+   * Used sparingly; placeholders use `textMuted` instead.
+   */
+  accent: string;
 };
 
 export type ColorScheme = 'light' | 'dark';
@@ -40,6 +45,7 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     danger: '#9E3B2F',
     onDanger: '#FFF8F0',
     shadow: '#1F1A15',
+    accent: '#2457E6',
   },
   dark: {
     background: '#121214',
@@ -53,6 +59,7 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     danger: '#D9796B',
     onDanger: '#121214',
     shadow: '#000000',
+    accent: '#5B9BFF',
   },
 };
 
