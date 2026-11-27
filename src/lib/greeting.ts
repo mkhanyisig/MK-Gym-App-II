@@ -8,11 +8,17 @@ export function timeOfDay(date: Date): TimeOfDay {
   return 'evening';
 }
 
-/** "Good evening, Sam." or "Good evening." when there's no name. */
+const TIME_OF_DAY_EMOJI: Record<TimeOfDay, string> = {
+  morning: '☀️',
+  afternoon: '🌤️',
+  evening: '🌙',
+};
+
+/** "Good evening, Sam 🌙" or "Good evening 🌙" when there's no name. */
 export function greeting(date: Date, name?: string | null): string {
-  const base = `Good ${timeOfDay(date)}`;
+  const period = timeOfDay(date);
   const trimmed = name?.trim();
-  return trimmed ? `${base}, ${trimmed}.` : `${base}.`;
+  return `Good ${period}${trimmed ? `, ${trimmed}` : ''} ${TIME_OF_DAY_EMOJI[period]}`;
 }
 
 /** "Welcome back, Sam." for a known name, otherwise just "Welcome back." */
