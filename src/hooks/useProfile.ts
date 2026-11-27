@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 import type { UnitSystem } from '@/lib/units';
 import { loadJson, removeKey, saveJson } from '@/lib/storage';
@@ -30,30 +30,64 @@ export const emptyProfile: Profile = {
 
 const STORAGE_KEY = 'profile.v2';
 
-export function useProfile() {
-  const [saved, setSaved] = useState<Profile>(emptyProfile);
-  const [loading, setLoading] = useState(true);
+type ProfileState = {
+  profile: Profile;
+  /** True once a profile has been saved on this device (used to tell returning users apart). */
+  exists: boolean;
+  loading: boolean;
+};
 
-  useEffect(() => {
-    loadJson<Profile & { nickname?: string }>(STORAGE_KEY).then((stored) => {
-      if (stored) {
-        // Profiles saved before the rename used `nickname`; carry it over.
-        const { nickname, ...rest } = stored;
-        setSaved({ ...emptyProfile, ...rest, preferredName: rest.preferredName || nickname || '' });
+/*
+ * One shared copy of the profile for the whole app. Tabs stay mounted, so if each
+ * screen kept its own copy, a name saved on Profile wouldn't reach the Home greeting.
+ */
+let state: ProfileState = { profile: emptyProfile, exists: false, loading: true };
+const listeners = new Set<() => void>();
+let loadStarted = false;
+
+function setState(next: ProfileState) {
+  state = next;
+  listeners.forEach((listener) => listener());
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  if (!loadStarted) {
+    loadStarted = true;
+    void loadJson<Profile & { nickname?: string }>(STORAGE_KEY).then((stored) => {
+      // A save or clear that finished first wins over this initial read.
+      if (!state.loading) return;
+      if (!stored) {
+        setState({ profile: emptyProfile, exists: false, loading: false });
+        return;
       }
-      setLoading(false);
+      // Profiles saved before the rename used `nickname`; carry it over.
+      const { nickname, ...rest } = stored;
+      setState({
+        profile: { ...emptyProfile, ...rest, preferredName: rest.preferredName || nickname || '' },
+        exists: true,
+        loading: false,
+      });
     });
-  }, []);
+  }
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
-  const save = useCallback(async (profile: Profile) => {
-    await saveJson(STORAGE_KEY, profile);
-    setSaved(profile);
-  }, []);
+const getSnapshot = () => state;
 
-  const clear = useCallback(async () => {
-    await removeKey(STORAGE_KEY);
-    setSaved(emptyProfile);
-  }, []);
+async function save(profile: Profile) {
+  await saveJson(STORAGE_KEY, profile);
+  setState({ profile, exists: true, loading: false });
+}
 
-  return { profile: saved, loading, save, clear };
+async function clear() {
+  await removeKey(STORAGE_KEY);
+  setState({ profile: emptyProfile, exists: false, loading: false });
+}
+
+export function useProfile() {
+  const { profile, exists, loading } = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  return { profile, exists, loading, save, clear };
 }
