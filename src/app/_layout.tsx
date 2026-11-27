@@ -34,11 +34,12 @@ function ThemedNavigation() {
 
   return (
     <ThemeProvider value={navigationTheme}>
-      {/* Explicit rather than 'auto' so it follows the app's scheme, even with a future manual preference. */}
+      {/* Explicit rather than 'auto' so it follows the app's scheme, including a manual preference. */}
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="about" options={{ presentation: 'modal', title: 'About' }} />
+        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
       </Stack>
     </ThemeProvider>
   );
