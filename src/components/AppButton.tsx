@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, type ViewStyle } from 'react-native';
 
-import { font, radius, spacing, type ThemeColors, useThemedStyles } from '@/theme';
+import { radius, spacing, textVariants, type ThemeColors, useThemedStyles } from '@/theme';
 
 type Variant = 'primary' | 'secondary' | 'danger';
 
@@ -38,15 +38,17 @@ const makeStyles = (c: ThemeColors) =>
     base: {
       paddingVertical: spacing.md - 2,
       paddingHorizontal: spacing.lg,
-      borderRadius: radius.md,
+      minHeight: 48,
+      borderRadius: radius.xs,
       alignItems: 'center',
+      justifyContent: 'center',
     },
     primary: { backgroundColor: c.primary },
     secondary: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.border },
     danger: { backgroundColor: c.danger },
     pressed: { opacity: 0.8 },
     disabled: { opacity: 0.4 },
-    text: { fontSize: font.body, fontWeight: '600' },
+    text: textVariants.button,
     primaryText: { color: c.onPrimary },
     secondaryText: { color: c.text },
     dangerText: { color: c.onDanger },

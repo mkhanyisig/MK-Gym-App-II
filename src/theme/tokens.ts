@@ -58,7 +58,8 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32 };
 
-export const radius = { sm: 8, md: 12, lg: 20, pill: 999 };
+/** `xs` is the editorial default for buttons; larger radii remain for cards and inputs. */
+export const radius = { xs: 4, sm: 8, md: 12, lg: 20, pill: 999 };
 
 export const font = {
   title: 28,
