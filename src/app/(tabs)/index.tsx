@@ -56,8 +56,8 @@ function buildMetrics(weight: Metric): Metric[] {
       label: 'This week',
       icon: 'calendar-outline',
       caption: 'No sessions',
-      href: '/timer',
-      accessibilityLabel: 'This week, no sessions recorded yet. Opens the timer to start one.',
+      href: '/clock',
+      accessibilityLabel: 'This week, no sessions recorded yet. Opens the clock.',
     },
     {
       label: 'Health',
@@ -156,7 +156,7 @@ export default function HomeScreen() {
             width={contentWidth}
           />
 
-          <AppButton title="Begin session  →" onPress={() => router.navigate('/timer')} />
+          <AppButton title="Begin session  →" onPress={() => router.navigate('/clock')} />
         </View>
 
         <View style={styles.recent}>
