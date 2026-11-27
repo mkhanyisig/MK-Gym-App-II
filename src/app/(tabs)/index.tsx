@@ -3,127 +3,121 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { AppButton } from '@/components/AppButton';
 import { AppText } from '@/components/AppText';
-import { BrandMark } from '@/components/BrandMark';
 import { EmptyState } from '@/components/EmptyState';
 import { HomeIllustration, useHomeIllustrationSize } from '@/components/HomeIllustration';
+import type { MetricCircleProps } from '@/components/MetricCircle';
+import { MetricGrid } from '@/components/MetricGrid';
 import { Rule } from '@/components/Rule';
 import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
-import { StatBlock } from '@/components/StatBlock';
 import { useNow } from '@/hooks/useNow';
-import { useProfile } from '@/hooks/useProfile';
-import { formatDateLabel, greeting } from '@/lib/greeting';
+import { type Profile, useProfile } from '@/hooks/useProfile';
+import { greeting, welcomeLine } from '@/lib/greeting';
 import { kgToLbs, round } from '@/lib/units';
 import { spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
-/** Below this width FORM and FUNCTION stack instead of sitting side by side. */
-const TWO_COLUMN_MIN_WIDTH = 360;
+/** Matches the content width cap so the layout stays readable on tablets and wide windows. */
+const MAX_CONTENT_WIDTH = 560;
 
-export default function HomeScreen() {
-  const styles = useThemedStyles(makeStyles);
-  const { profile, exists } = useProfile();
-  const now = useNow();
-  const { width } = useWindowDimensions();
-  const illustrationSize = useHomeIllustrationSize();
+/** Space between Home sections: airy, but tight enough to keep Begin Session in reach. */
+const SECTION_GAP = 18;
 
-  const name = profile.preferredName.trim() || profile.firstName.trim();
-  const twoColumn = width >= TWO_COLUMN_MIN_WIDTH;
+type Metric = Omit<MetricCircleProps, 'size'>;
 
+/**
+ * The four Home metrics. Only body weight has a real source today (the profile);
+ * the others show neutral placeholders until workout sessions are recorded.
+ */
+function buildMetrics(profile: Profile): Metric[] {
   const metric = profile.units === 'metric';
   const weight =
     profile.weightKg == null ? null : String(round(metric ? profile.weightKg : kgToLbs(profile.weightKg)));
 
+  return [
+    weight != null
+      ? {
+          label: 'Weight',
+          value: weight,
+          unit: metric ? 'kg' : 'lbs',
+          href: '/profile',
+          accessibilityLabel: `Weight, ${weight} ${metric ? 'kilograms' : 'pounds'}. Opens your profile.`,
+        }
+      : {
+          label: 'Weight',
+          icon: 'scale-outline',
+          caption: 'Add yours',
+          href: '/profile',
+          accessibilityLabel: 'Weight, not set. Opens your profile to add it.',
+        },
+    {
+      label: 'Last workout',
+      icon: 'barbell-outline',
+      caption: 'None yet',
+      accessibilityLabel: 'Last workout, none recorded yet.',
+    },
+    {
+      label: 'This week',
+      icon: 'calendar-outline',
+      caption: 'No sessions',
+      accessibilityLabel: 'This week, no sessions recorded yet.',
+    },
+    {
+      label: 'Health',
+      icon: 'pulse-outline',
+      caption: 'Coming soon',
+      accessibilityLabel: 'Health metric, coming soon.',
+    },
+  ];
+}
+
+export default function HomeScreen() {
+  const styles = useThemedStyles(makeStyles);
+  const { profile } = useProfile();
+  const now = useNow();
+  const { width } = useWindowDimensions();
+  const portraitSize = useHomeIllustrationSize();
+
+  const name = profile.preferredName.trim() || profile.firstName.trim();
+  const contentWidth = Math.min(width - spacing.md * 2, MAX_CONTENT_WIDTH);
+
   return (
     <Screen scroll>
       <View style={styles.page}>
-        {/* Welcome */}
-        <View style={styles.masthead}>
-          <View style={styles.wordmarkRow}>
-            <BrandMark />
-            <AppText variant="wordmark" accessibilityRole="header" accessibilityLabel="My FORM.">
-              My FORM<Text style={styles.stop}>.</Text>
-            </AppText>
-          </View>
-          <AppText variant="label" tone="muted">
+        <View style={styles.brand}>
+          <AppText variant="wordmark" accessibilityRole="header" style={styles.center}>
+            My Form<Text style={styles.stop}>.</Text>
+          </AppText>
+          <AppText variant="small" tone="muted" style={styles.center}>
             Train with intention.
           </AppText>
         </View>
 
-        <View style={styles.welcomeRow}>
-          <View style={styles.welcome}>
-            <AppText variant="label" tone="muted">
-              {formatDateLabel(now)}
-            </AppText>
-            {exists ? (
-              <AppText variant="label" tone="highlight">
-                Welcome back
-              </AppText>
-            ) : null}
-            <AppText variant="greeting">{greeting(now, name)}</AppText>
-            {exists ? null : (
-              <EmptyState
-                message="Welcome to My FORM."
-                action={{ label: 'Set up your profile', href: '/profile' }}
-              />
-            )}
-          </View>
-          <HomeIllustration size={illustrationSize} />
+        <View style={styles.greeting}>
+          <AppText variant="greeting" style={styles.center}>
+            {welcomeLine(name)}
+          </AppText>
+          <AppText variant="body" tone="muted" style={styles.center}>
+            {greeting(now)}
+          </AppText>
         </View>
 
-        <Rule />
-
-        {/* Today */}
-        <View style={styles.section}>
-          <SectionHeader title="Today" />
-          <View style={styles.today}>
-            <AppText variant="title">No session planned</AppText>
-            <AppText variant="small" tone="muted">
-              Begin an open session and log as you go.
-            </AppText>
-          </View>
-          <AppButton title="Begin session  →" onPress={() => router.navigate('/timer')} />
+        <View style={styles.portrait}>
+          <HomeIllustration size={portraitSize} />
         </View>
 
-        <Rule />
+        <MetricGrid metrics={buildMetrics(profile)} width={contentWidth} />
 
-        {/* FORM / FUNCTION */}
-        <View style={[styles.stats, twoColumn && styles.statsRow]}>
-          {weight != null ? (
-            <StatBlock
-              style={twoColumn ? styles.stat : undefined}
-              label="Form"
-              value={weight}
-              unit={metric ? 'kg' : 'lbs'}
-              caption="Current weight, from your profile"
-              accessibilityLabel={`Form. Current weight ${weight} ${metric ? 'kilograms' : 'pounds'}.`}
-            />
-          ) : (
-            <StatBlock style={twoColumn ? styles.stat : undefined} label="Form">
-              <EmptyState
-                message="Add your weight to start tracking your form."
-                action={{ label: 'Add weight', href: '/profile' }}
-              />
-            </StatBlock>
-          )}
+        <AppButton title="Begin session  →" onPress={() => router.navigate('/timer')} />
 
-          {twoColumn ? <View style={styles.columnRule} /> : <Rule />}
-
-          <StatBlock style={twoColumn ? styles.stat : undefined} label="Function">
-            <EmptyState message="No sessions logged yet. Your sessions this week will show here." />
-          </StatBlock>
-        </View>
-
-        <Rule />
-
-        {/* Recent */}
-        <View style={styles.section}>
+        <View style={styles.recent}>
+          <Rule />
           <SectionHeader title="Recent" />
-          <EmptyState message="Your journal is empty. Finished sessions will appear here." />
+          <EmptyState message="No sessions yet." />
         </View>
 
         <Link href="/about" style={styles.about}>
           <AppText variant="label" tone="muted">
-            About My FORM.
+            About My Form.
           </AppText>
         </Link>
       </View>
@@ -133,19 +127,12 @@ export default function HomeScreen() {
 
 const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
-    // Keep a readable measure on tablets and large web windows.
-    page: { width: '100%', maxWidth: 560, alignSelf: 'center', gap: spacing.lg, paddingBottom: spacing.lg },
-    masthead: { gap: spacing.xs },
-    wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    page: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', gap: SECTION_GAP },
+    center: { textAlign: 'center' },
+    brand: { alignItems: 'center', gap: 2 },
     stop: { color: c.highlight },
-    // Greeting on the left, illustration on the right; the greeting wraps if it needs to.
-    welcomeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-    welcome: { flex: 1, gap: spacing.sm },
-    section: { gap: spacing.md },
-    today: { gap: spacing.xs },
-    stats: { gap: spacing.lg },
-    statsRow: { flexDirection: 'row', gap: spacing.md },
-    stat: { flex: 1 },
-    columnRule: { width: StyleSheet.hairlineWidth, backgroundColor: c.border },
+    greeting: { alignItems: 'center', gap: 2 },
+    portrait: { alignItems: 'center' },
+    recent: { gap: spacing.md },
     about: { alignSelf: 'center', paddingVertical: spacing.md },
   });

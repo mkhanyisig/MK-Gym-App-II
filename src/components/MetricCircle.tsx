@@ -89,7 +89,7 @@ export function MetricCircle({ label, value, unit, icon, caption, href, accessib
 
 const styles = StyleSheet.create({
   pressable: { alignItems: 'center' },
-  container: { alignItems: 'center', gap: spacing.xs },
+  container: { alignItems: 'center', gap: 2 },
   ring: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
   unit: { marginTop: -2 },
   label: { marginTop: spacing.xs, textAlign: 'center' },

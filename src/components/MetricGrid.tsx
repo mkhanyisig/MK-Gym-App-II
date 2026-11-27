@@ -9,7 +9,7 @@ type Props = {
   width: number;
 };
 
-/** Below this circle size a row of four gets cramped, so switch to 2×2. */
+/** Below this circle size a row of four gets cramped, so switch to 2×2 with 64pt circles. */
 const MIN_ROW_CIRCLE = 70;
 const GAP = spacing.md;
 
@@ -21,7 +21,7 @@ export function MetricGrid({ metrics, width }: Props) {
   const { fontScale } = useWindowDimensions();
   const rowSize = Math.floor((width - GAP * 3) / 4);
   const columns = rowSize >= MIN_ROW_CIRCLE && fontScale <= 1.3 ? 4 : 2;
-  const size = columns === 4 ? Math.min(rowSize, 84) : Math.min(Math.floor((width - GAP) / 2) - spacing.lg, 96);
+  const size = columns === 4 ? Math.min(rowSize, 84) : 64;
   const cellWidth = (width - GAP * (columns - 1)) / columns;
 
   return (

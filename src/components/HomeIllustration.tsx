@@ -9,18 +9,19 @@ const ILLUSTRATION = require('../../assets/brand/home-illustration.png');
 const MAX_CONTENT_WIDTH = 560;
 
 /**
- * Size for the Home illustration: about a third of the content width, so it sits
- * beside the greeting without pushing Begin Session down, and smaller on short screens.
- * 320 pt wide → ~100, 375 → ~120, 430 → ~140, tablets → 168 at most.
+ * Size for the centred Home portrait: about half the content width, limited by
+ * screen height so short phones still reach Begin Session with a short scroll,
+ * but never so small it stops being the centrepiece.
+ * 320×568 → 150, 375×667 → 160, 430×932 → ~200, tablets → 220 at most.
  */
 export function useHomeIllustrationSize(): number {
   const { width, height } = useWindowDimensions();
   const contentWidth = Math.min(width - spacing.md * 2, MAX_CONTENT_WIDTH);
-  return Math.round(Math.max(88, Math.min(contentWidth * 0.36, height * 0.19, 168)));
+  return Math.round(Math.max(150, Math.min(contentWidth * 0.5, height * 0.24, 220)));
 }
 
 /**
- * The My FORM. Home illustration. Decorative: hidden from screen readers.
+ * The My Form. Home portrait. Decorative: hidden from screen readers.
  * Kept separate from BrandMark, which is a small single-colour icon tinted by the
  * theme; this artwork keeps its own colours and transparency in both themes.
  * `contain` keeps the whole figure, graph and dumbbell visible.

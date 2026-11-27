@@ -15,9 +15,8 @@ export function greeting(date: Date, name?: string | null): string {
   return trimmed ? `${base}, ${trimmed}.` : `${base}.`;
 }
 
-/** "Thursday · 27 November" (rendered uppercase by the label style). */
-export function formatDateLabel(date: Date): string {
-  const weekday = date.toLocaleDateString(undefined, { weekday: 'long' });
-  const dayMonth = date.toLocaleDateString(undefined, { day: 'numeric', month: 'long' });
-  return `${weekday} · ${dayMonth}`;
+/** "Welcome back, Sam." for a known name, otherwise a first-visit welcome. */
+export function welcomeLine(name?: string | null): string {
+  const trimmed = name?.trim();
+  return trimmed ? `Welcome back, ${trimmed}.` : 'Welcome to My Form.';
 }
