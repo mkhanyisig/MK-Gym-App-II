@@ -105,7 +105,11 @@ export default function HomeScreen() {
         {/* First screen: everything down to Begin Session, which sits at the bottom of the view.
             Recent starts just below, revealed by scrolling. */}
         <View
-          style={[styles.firstScreen, short && styles.firstScreenCompact, { minHeight: firstScreenMinHeight }]}
+          style={[
+            styles.firstScreen,
+            short && styles.firstScreenCompact,
+            { minHeight: firstScreenMinHeight },
+          ]}
         >
           <View style={styles.brand}>
             <View style={styles.titleBadge}>
@@ -116,19 +120,12 @@ export default function HomeScreen() {
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 maxFontSizeMultiplier={1}
-                style={[
-                  styles.center,
-                  styles.titleText,
-                  short && styles.wordmarkCompact,
-                ]}
+                style={[styles.center, styles.titleText, short && styles.wordmarkCompact]}
               >
                 My FORM<Text style={styles.titleStop}>.</Text>
               </AppText>
 
-              <AppText
-                variant="small"
-                style={[styles.center, styles.tagline]}
-              >
+              <AppText variant="small" style={[styles.center, styles.tagline]}>
                 Train with intention.
               </AppText>
             </View>
@@ -196,12 +193,26 @@ const makeStyles = (c: ThemeColors) =>
     titleStop: { color: c.onBrandAccent },
     // Gold on the red block (4.84:1), matching the full stop; the small top margin keeps
     // the "y" descender in "My" from crowding it.
-    tagline: { fontFamily: fontFamily.sansSemiBold, fontSize: 16, lineHeight: 20, color: c.onBrandAccent, marginTop: spacing.xs },
+    tagline: {
+      fontFamily: fontFamily.sansSemiBold,
+      fontSize: 16,
+      lineHeight: 20,
+      color: c.onBrandAccent,
+      marginTop: spacing.xs,
+    },
     greeting: { alignItems: 'center', gap: 2 },
     // Takes the first screen's spare height so the portrait can grow and Begin Session
     // stays at the bottom; any space beyond the portrait's maximum is split above and below it.
     portrait: { flexGrow: 1 },
-    portraitFill: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
+    portraitFill: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     recent: { gap: spacing.md },
     about: { alignSelf: 'center', paddingVertical: spacing.md },
   });

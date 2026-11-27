@@ -12,8 +12,8 @@ export default function AboutScreen() {
         Log and track your gym workouts and body measurements, and get insights on how you&apos;re improving.
       </Text>
       <Text style={styles.body}>
-        Originally built as Gym Buddy for COSI 153a: Mobile App Development (Fall 2021) by Mkhanyisi Gamedze, and rebuilt in
-        2026 on a modern Expo stack.
+        Originally built as Gym Buddy for COSI 153a: Mobile App Development (Fall 2021) by Mkhanyisi Gamedze,
+        and rebuilt in 2026 on a modern Expo stack.
       </Text>
     </Screen>
   );

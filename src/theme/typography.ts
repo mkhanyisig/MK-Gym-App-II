@@ -60,9 +60,26 @@ export const textVariants: Record<TextVariant, TextStyle> = {
   greeting: { fontFamily: fontFamily.serifItalic, fontSize: 22, lineHeight: 30 },
   body: { fontFamily: fontFamily.sans, fontSize: 16, lineHeight: 23 },
   small: { fontFamily: fontFamily.sans, fontSize: 13, lineHeight: 19 },
-  label: { fontFamily: fontFamily.sansSemiBold, fontSize: 11, lineHeight: 15, letterSpacing: 2.5, textTransform: 'uppercase' },
-  button: { fontFamily: fontFamily.sansSemiBold, fontSize: 13, lineHeight: 17, letterSpacing: 1.5, textTransform: 'uppercase' },
+  label: {
+    fontFamily: fontFamily.sansSemiBold,
+    fontSize: 11,
+    lineHeight: 15,
+    letterSpacing: 2.5,
+    textTransform: 'uppercase',
+  },
+  button: {
+    fontFamily: fontFamily.sansSemiBold,
+    fontSize: 13,
+    lineHeight: 17,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
 };
 
 /** Large type that would wrap or clip if scaled freely with the system text size. */
-export const cappedVariants: ReadonlySet<TextVariant> = new Set(['wordmark', 'metric', 'metricSmall', 'display']);
+export const cappedVariants: ReadonlySet<TextVariant> = new Set([
+  'wordmark',
+  'metric',
+  'metricSmall',
+  'display',
+]);

@@ -24,7 +24,9 @@ export default function TimerScreen() {
         <Text style={styles.clock} accessibilityRole="timer">
           {formatDuration(elapsed)}
         </Text>
-        <Text style={styles.status}>{status === 'idle' ? 'Ready' : status === 'running' ? 'Running' : 'Paused'}</Text>
+        <Text style={styles.status}>
+          {status === 'idle' ? 'Ready' : status === 'running' ? 'Running' : 'Paused'}
+        </Text>
       </View>
       <View style={styles.buttons}>
         <AppButton title={primary.title} onPress={primary.onPress} style={styles.button} />
