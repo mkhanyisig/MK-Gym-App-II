@@ -5,6 +5,7 @@ import {
   kgToLbs,
   lbsToKg,
   parseNumber,
+  parseWeightInput,
   round,
 } from '@/lib/units';
 
@@ -78,5 +79,33 @@ describe('formatWeight', () => {
   it('returns null when there is no weight', () => {
     expect(formatWeight(null, 'metric')).toBeNull();
     expect(formatWeight(null, 'imperial')).toBeNull();
+  });
+});
+
+describe('parseWeightInput', () => {
+  it('takes metric input as kg', () => {
+    expect(parseWeightInput('74.8', 'metric')).toEqual({ ok: true, weightKg: 74.8 });
+    expect(parseWeightInput(' 74,8 ', 'metric')).toEqual({ ok: true, weightKg: 74.8 });
+  });
+
+  it('converts imperial input to kg at full precision', () => {
+    const parsed = parseWeightInput('165', 'imperial');
+    expect(parsed).toEqual({ ok: true, weightKg: 165 * 0.45359237 });
+    // And it displays back as what was typed.
+    expect(parsed.ok && formatWeight(parsed.weightKg, 'imperial')?.value).toBe('165');
+  });
+
+  it('asks for a value when the field is empty', () => {
+    expect(parseWeightInput('   ', 'metric')).toMatchObject({ ok: false, reason: 'empty' });
+  });
+
+  it('rejects non-numbers, zero and negatives with a helpful message', () => {
+    for (const bad of ['abc', '0', '-5', '0,0']) {
+      expect(parseWeightInput(bad, 'metric')).toMatchObject({
+        ok: false,
+        reason: 'invalid',
+        message: expect.stringContaining('above zero'),
+      });
+    }
   });
 });

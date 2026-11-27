@@ -1,3 +1,5 @@
+import { formatWeight, type UnitSystem } from '@/lib/units';
+
 /**
  * One daily weigh-in, as stored in the `weight_entries` table (see src/db/database.ts).
  * There is at most one entry per local calendar day.
@@ -53,4 +55,46 @@ export type WeightChange = {
 export function weightChange(latest: WeightEntry | null, previous: WeightEntry | null): WeightChange | null {
   if (!latest || !previous) return null;
   return { deltaKg: latest.weightKg - previous.weightKg, sinceDate: previous.date };
+}
+
+/** The entry recorded for a local day, if any. */
+export function findEntryForDay(entries: WeightEntry[], date: string): WeightEntry | null {
+  return entries.find((entry) => entry.date === date) ?? null;
+}
+
+/**
+ * What saving the weight form should do:
+ * - `create`: today has no weigh-in yet.
+ * - `replace`: today already has one; the UI must confirm before overwriting it.
+ * - `update`: the user is editing a specific entry (its date is kept).
+ * - `unchanged`: the value shown would be the same, so there's nothing to save.
+ * "Same" compares what the user sees in their units, so re-saving 165 lbs is a no-op.
+ */
+export type SavePlan =
+  | { kind: 'create'; date: string; weightKg: number }
+  | { kind: 'replace'; existing: WeightEntry; weightKg: number }
+  | { kind: 'update'; existing: WeightEntry; weightKg: number }
+  | { kind: 'unchanged'; existing: WeightEntry };
+
+export function planWeightSave({
+  weightKg,
+  today,
+  entries,
+  editing,
+  units,
+}: {
+  weightKg: number;
+  today: string;
+  entries: WeightEntry[];
+  editing: WeightEntry | null;
+  units: UnitSystem;
+}): SavePlan {
+  const target = editing ?? findEntryForDay(entries, today);
+  if (!target) return { kind: 'create', date: today, weightKg };
+  if (formatWeight(weightKg, units)?.value === formatWeight(target.weightKg, units)?.value) {
+    return { kind: 'unchanged', existing: target };
+  }
+  return editing
+    ? { kind: 'update', existing: target, weightKg }
+    : { kind: 'replace', existing: target, weightKg };
 }
