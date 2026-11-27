@@ -44,3 +44,6 @@ yarn-error.*
 /CLAUDE.md
 /.claude/
 /AGENTS.md
+
+# local development notes (maintained by Claude, not committed)
+/docs/PROJECT_STATUS.md
