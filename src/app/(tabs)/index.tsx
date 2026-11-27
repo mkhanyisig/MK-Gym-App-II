@@ -5,6 +5,7 @@ import { AppButton } from '@/components/AppButton';
 import { AppText } from '@/components/AppText';
 import { BrandMark } from '@/components/BrandMark';
 import { EmptyState } from '@/components/EmptyState';
+import { HomeIllustration, useHomeIllustrationSize } from '@/components/HomeIllustration';
 import { Rule } from '@/components/Rule';
 import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
@@ -23,6 +24,7 @@ export default function HomeScreen() {
   const { profile, exists } = useProfile();
   const now = useNow();
   const { width } = useWindowDimensions();
+  const illustrationSize = useHomeIllustrationSize();
 
   const name = profile.preferredName.trim() || profile.firstName.trim();
   const twoColumn = width >= TWO_COLUMN_MIN_WIDTH;
@@ -47,22 +49,25 @@ export default function HomeScreen() {
           </AppText>
         </View>
 
-        <View style={styles.welcome}>
-          <AppText variant="label" tone="muted">
-            {formatDateLabel(now)}
-          </AppText>
-          {exists ? (
-            <AppText variant="label" tone="highlight">
-              Welcome back
+        <View style={styles.welcomeRow}>
+          <View style={styles.welcome}>
+            <AppText variant="label" tone="muted">
+              {formatDateLabel(now)}
             </AppText>
-          ) : null}
-          <AppText variant="greeting">{greeting(now, name)}</AppText>
-          {exists ? null : (
-            <EmptyState
-              message="Welcome to My FORM."
-              action={{ label: 'Set up your profile', href: '/profile' }}
-            />
-          )}
+            {exists ? (
+              <AppText variant="label" tone="highlight">
+                Welcome back
+              </AppText>
+            ) : null}
+            <AppText variant="greeting">{greeting(now, name)}</AppText>
+            {exists ? null : (
+              <EmptyState
+                message="Welcome to My FORM."
+                action={{ label: 'Set up your profile', href: '/profile' }}
+              />
+            )}
+          </View>
+          <HomeIllustration size={illustrationSize} />
         </View>
 
         <Rule />
@@ -133,7 +138,9 @@ const makeStyles = (c: ThemeColors) =>
     masthead: { gap: spacing.xs },
     wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
     stop: { color: c.highlight },
-    welcome: { gap: spacing.sm },
+    // Greeting on the left, illustration on the right; the greeting wraps if it needs to.
+    welcomeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    welcome: { flex: 1, gap: spacing.sm },
     section: { gap: spacing.md },
     today: { gap: spacing.xs },
     stats: { gap: spacing.lg },
