@@ -62,8 +62,6 @@ export default function ProfileScreen() {
 
   return (
     <Screen scroll>
-      <Text style={styles.title}>Profile</Text>
-
       <Card title="Personal info">
         <View style={styles.row}>
           <FormField
@@ -160,7 +158,6 @@ export default function ProfileScreen() {
 const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
     center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    title: { fontSize: font.title, fontWeight: '800', color: c.text },
     row: { flexDirection: 'row', gap: spacing.md },
     toggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     toggleLabel: { fontSize: font.body, color: c.text },

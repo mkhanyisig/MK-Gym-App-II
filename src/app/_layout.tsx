@@ -57,6 +57,7 @@ function ThemedNavigation() {
           options={{ title: 'Settings', headerBackButtonDisplayMode: 'minimal' }}
         />
         <Stack.Screen name="weight" options={{ title: 'Weight', headerBackTitle: 'Home' }} />
+        <Stack.Screen name="profile" options={{ title: 'Profile', headerBackButtonDisplayMode: 'minimal' }} />
         <Stack.Screen
           name="notifications"
           options={{ title: 'Notifications', headerBackButtonDisplayMode: 'minimal' }}
