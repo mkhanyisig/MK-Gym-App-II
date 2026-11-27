@@ -15,8 +15,8 @@ export function greeting(date: Date, name?: string | null): string {
   return trimmed ? `${base}, ${trimmed}.` : `${base}.`;
 }
 
-/** "Welcome back, Sam." for a known name, otherwise a first-visit welcome. */
+/** "Welcome back, Sam." for a known name, otherwise just "Welcome back." */
 export function welcomeLine(name?: string | null): string {
   const trimmed = name?.trim();
-  return trimmed ? `Welcome back, ${trimmed}.` : 'Welcome to My Form.';
+  return trimmed ? `Welcome back, ${trimmed}.` : 'Welcome back.';
 }
