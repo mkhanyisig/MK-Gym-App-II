@@ -133,6 +133,8 @@ export function useWeightEntries() {
     previous: state.entries[1] ?? null,
     // Still loading until the first read finishes or fails.
     loading: state.loading || (!state.loaded && !state.error),
+    /** The first read has succeeded, so an empty `entries` really means "none yet". */
+    loaded: state.loaded,
     error: state.error,
     refresh: store.refresh,
     logWeight: store.logWeight,

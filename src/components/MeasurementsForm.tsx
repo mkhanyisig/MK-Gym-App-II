@@ -18,6 +18,11 @@ type Props = {
   weightKg: number | null;
   heightCm: number | null;
   onChange: (next: { weightKg: number | null; heightCm: number | null }) => void;
+  /**
+   * Hide the weight field, e.g. once weigh-ins are the source of current weight. The
+   * stored Profile weight is kept and passed through unchanged.
+   */
+  hideWeight?: boolean;
 };
 
 const str = (n: number | null) => (n == null ? '' : String(n));
@@ -28,7 +33,7 @@ const str = (n: number | null) => (n == null ? '' : String(n));
  * it is initialised from props once, so the parent should change `key` to
  * re-sync (e.g. when the unit system changes or a profile is loaded/cleared).
  */
-export function MeasurementsForm({ units, weightKg, heightCm, onChange }: Props) {
+export function MeasurementsForm({ units, weightKg, heightCm, onChange, hideWeight = false }: Props) {
   const initialFeetInches = heightCm == null ? null : cmToFeetInches(heightCm);
   const [weight, setWeight] = useState(() => formatWeight(weightKg, units)?.value ?? '');
   const [height, setHeight] = useState(() => str(heightCm == null ? null : round(heightCm)));
@@ -56,14 +61,16 @@ export function MeasurementsForm({ units, weightKg, heightCm, onChange }: Props)
 
   return (
     <View style={styles.container}>
-      <FormField
-        label="Weight"
-        suffix={units === 'metric' ? 'kg' : 'lbs'}
-        value={weight}
-        onChangeText={updateWeight}
-        keyboardType="decimal-pad"
-        placeholder={units === 'metric' ? 'e.g. 75' : 'e.g. 165'}
-      />
+      {hideWeight ? null : (
+        <FormField
+          label="Weight"
+          suffix={units === 'metric' ? 'kg' : 'lbs'}
+          value={weight}
+          onChangeText={updateWeight}
+          keyboardType="decimal-pad"
+          placeholder={units === 'metric' ? 'e.g. 75' : 'e.g. 165'}
+        />
+      )}
       {units === 'metric' ? (
         <FormField
           label="Height"

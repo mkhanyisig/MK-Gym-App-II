@@ -6,14 +6,18 @@ import { BmiCard } from '@/components/BmiCard';
 import { Card } from '@/components/Card';
 import { FormField } from '@/components/FormField';
 import { MeasurementsForm } from '@/components/MeasurementsForm';
+import { ProfileWeight } from '@/components/ProfileWeight';
 import { Screen } from '@/components/Screen';
 import { type Profile, useProfile } from '@/hooks/useProfile';
+import { useWeightEntries } from '@/hooks/useWeightEntries';
+import { currentWeight } from '@/lib/weight';
 import { font, spacing, type ThemeColors, useAppTheme, useThemedStyles } from '@/theme';
 
 export default function ProfileScreen() {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(makeStyles);
   const { profile, loading, save, clear } = useProfile();
+  const weighIns = useWeightEntries();
   const [draft, setDraft] = useState<Profile>(profile);
   // Bumped whenever the draft is replaced wholesale, so the measurements form re-syncs.
   const [formVersion, setFormVersion] = useState(0);
@@ -42,7 +46,8 @@ export default function ProfileScreen() {
       { text: 'Clear', style: 'destructive', onPress: () => void clear() },
     ]);
 
-  if (loading) {
+  // Wait for weigh-ins too, so BMI and the weight shown never flash from the wrong source.
+  if (loading || (!weighIns.loaded && !weighIns.error)) {
     return (
       <Screen style={styles.center}>
         <ActivityIndicator color={colors.primary} />
@@ -51,6 +56,9 @@ export default function ProfileScreen() {
   }
 
   const metric = draft.units === 'metric';
+  // One current-weight rule: the latest weigh-in, else the Profile weight (live edits included).
+  const current = currentWeight(weighIns.latest, draft.weightKg);
+  const bmiWeightKg = current.source === 'none' ? null : current.weightKg;
 
   return (
     <Screen scroll>
@@ -109,8 +117,19 @@ export default function ProfileScreen() {
             {...{ activeThumbColor: colors.onPrimary }}
           />
         </View>
+        <ProfileWeight
+          units={draft.units}
+          latest={weighIns.latest}
+          profileWeightKg={profile.weightKg}
+          weighInsLoaded={weighIns.loaded}
+          weighInsError={weighIns.error}
+          entryCount={weighIns.entries.length}
+          logWeight={weighIns.logWeight}
+        />
         <MeasurementsForm
           key={`${draft.units}-${formVersion}`}
+          // Once a weigh-in exists, it is the current weight; don't offer a second input.
+          hideWeight={weighIns.latest != null}
           units={draft.units}
           weightKg={draft.weightKg}
           heightCm={draft.heightCm}
@@ -118,7 +137,7 @@ export default function ProfileScreen() {
         />
       </Card>
 
-      <BmiCard weightKg={draft.weightKg} heightCm={draft.heightCm} />
+      <BmiCard weightKg={bmiWeightKg} heightCm={draft.heightCm} />
 
       <View style={styles.actions}>
         <AppButton title="Save" onPress={onSave} disabled={!dirty} />

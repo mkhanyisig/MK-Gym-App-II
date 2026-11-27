@@ -1,6 +1,7 @@
 import { createTestDb, type TestDb } from '@/db/testing/nodeSqliteDb';
 import { WeightEntryError } from '@/db/weightEntries';
 import { createWeightStore, type WeightStore } from '@/hooks/useWeightEntries';
+import { currentWeight } from '@/lib/weight';
 
 // The store behind useWeightEntries, against real SQLite. Each test gets a fresh store
 // and database.
@@ -116,5 +117,20 @@ describe('read failures', () => {
 
     await store.refresh();
     expect(store.getSnapshot()).toMatchObject({ loaded: true, error: null });
+  });
+});
+
+describe('current weight as entries change (store + rule together)', () => {
+  it('falls back to the next entry, then to the Profile weight, as the latest is deleted', async () => {
+    await store.ensureLoaded(db);
+    const older = await store.logWeight('2026-11-24', 75);
+    const newer = await store.logWeight('2026-11-27', 74.2);
+    const current = () => currentWeight(store.getSnapshot().entries[0] ?? null, 80);
+
+    expect(current()).toMatchObject({ source: 'weigh-in', weightKg: 74.2 });
+    await store.deleteWeight(newer.id);
+    expect(current()).toMatchObject({ source: 'weigh-in', weightKg: 75, date: '2026-11-24' });
+    await store.deleteWeight(older.id);
+    expect(current()).toEqual({ source: 'profile', weightKg: 80 });
   });
 });

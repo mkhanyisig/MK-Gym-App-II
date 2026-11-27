@@ -64,3 +64,32 @@ export function parseWeightInput(text: string, units: UnitSystem): WeightInput {
   }
   return { ok: true, weightKg: units === 'metric' ? value : lbsToKg(value) };
 }
+
+export type FormattedWeightChange = {
+  /** Signed figure with a true minus sign, e.g. "−0.6" or "+0.4"; "0" when unchanged. */
+  value: string;
+  unit: 'kg' | 'lbs';
+  direction: 'down' | 'up' | 'same';
+  /** For screen readers, e.g. "down 0.6 kilograms". */
+  spoken: string;
+};
+
+/**
+ * Displays a weight difference (in kg) in the user's units with an explicit sign, so
+ * gain and loss don't depend on color. Rounds like formatWeight; a change that rounds
+ * to zero reads as no change.
+ */
+export function formatWeightChange(deltaKg: number, units: UnitSystem): FormattedWeightChange {
+  const magnitude = formatWeight(Math.abs(deltaKg), units) ?? { value: '0', unit: 'kg' as const, spoken: '' };
+  const unitWord = magnitude.unit === 'kg' ? 'kilograms' : 'pounds';
+  if (magnitude.value === '0') {
+    return { value: '0', unit: magnitude.unit, direction: 'same', spoken: 'no change' };
+  }
+  const direction = deltaKg < 0 ? 'down' : 'up';
+  return {
+    value: `${direction === 'down' ? '−' : '+'}${magnitude.value}`,
+    unit: magnitude.unit,
+    direction,
+    spoken: `${direction} ${magnitude.value} ${unitWord}`,
+  };
+}

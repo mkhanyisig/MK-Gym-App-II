@@ -98,3 +98,39 @@ export function planWeightSave({
     ? { kind: 'update', existing: target, weightKg }
     : { kind: 'replace', existing: target, weightKg };
 }
+
+/**
+ * The single rule for "current weight", used by Home, Profile and BMI:
+ * 1. the latest recorded weigh-in, else
+ * 2. the undated Profile weight (shown as "From profile"), else
+ * 3. nothing.
+ * The caller decides what to show while weigh-ins are still loading.
+ */
+export type CurrentWeight =
+  | { source: 'weigh-in'; weightKg: number; date: string }
+  | { source: 'profile'; weightKg: number }
+  | { source: 'none' };
+
+export function currentWeight(latest: WeightEntry | null, profileWeightKg: number | null): CurrentWeight {
+  if (latest) return { source: 'weigh-in', weightKg: latest.weightKg, date: latest.date };
+  if (profileWeightKg != null && isValidWeightKg(profileWeightKg)) {
+    return { source: 'profile', weightKg: profileWeightKg };
+  }
+  return { source: 'none' };
+}
+
+/**
+ * Whether to offer "Log your Profile weight as today's weigh-in": only when there's a
+ * valid Profile weight, weigh-ins have loaded, and none exist yet. Never automatic.
+ */
+export function canImportProfileWeight({
+  profileWeightKg,
+  weighInsLoaded,
+  entryCount,
+}: {
+  profileWeightKg: number | null;
+  weighInsLoaded: boolean;
+  entryCount: number;
+}): boolean {
+  return weighInsLoaded && entryCount === 0 && profileWeightKg != null && isValidWeightKg(profileWeightKg);
+}

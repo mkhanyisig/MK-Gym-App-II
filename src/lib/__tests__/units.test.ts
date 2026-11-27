@@ -2,6 +2,7 @@ import {
   cmToFeetInches,
   feetInchesToCm,
   formatWeight,
+  formatWeightChange,
   kgToLbs,
   lbsToKg,
   parseNumber,
@@ -107,5 +108,35 @@ describe('parseWeightInput', () => {
         message: expect.stringContaining('above zero'),
       });
     }
+  });
+});
+
+describe('formatWeightChange', () => {
+  it('signs a loss with a true minus and a gain with a plus', () => {
+    expect(formatWeightChange(-0.6, 'metric')).toEqual({
+      value: '\u22120.6',
+      unit: 'kg',
+      direction: 'down',
+      spoken: 'down 0.6 kilograms',
+    });
+    expect(formatWeightChange(0.4, 'metric')).toEqual({
+      value: '+0.4',
+      unit: 'kg',
+      direction: 'up',
+      spoken: 'up 0.4 kilograms',
+    });
+  });
+
+  it('converts the difference to lbs for imperial', () => {
+    expect(formatWeightChange(-0.45359237, 'imperial')).toMatchObject({ value: '\u22121', unit: 'lbs' });
+  });
+
+  it('treats a difference that rounds to zero as no change', () => {
+    expect(formatWeightChange(0.02, 'metric')).toEqual({
+      value: '0',
+      unit: 'kg',
+      direction: 'same',
+      spoken: 'no change',
+    });
   });
 });
