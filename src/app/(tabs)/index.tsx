@@ -50,15 +50,15 @@ function buildMetrics(profile: Profile): Metric[] {
           label: 'Weight',
           value: weight.value,
           unit: weight.unit,
-          href: '/profile',
-          accessibilityLabel: `Weight, ${weight.spoken}. Opens your profile.`,
+          href: '/weight',
+          accessibilityLabel: `Weight, ${weight.spoken}. Opens your weigh-ins.`,
         }
       : {
           label: 'Weight',
           icon: 'scale-outline',
           caption: 'Add yours',
-          href: '/profile',
-          accessibilityLabel: 'Weight, not set. Opens your profile to add it.',
+          href: '/weight',
+          accessibilityLabel: 'Weight, not set. Opens your weigh-ins to log one.',
         },
     {
       label: 'Last workout',
