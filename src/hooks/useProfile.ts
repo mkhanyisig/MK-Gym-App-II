@@ -6,7 +6,8 @@ import { loadJson, removeKey, saveJson } from '@/lib/storage';
 export type Profile = {
   firstName: string;
   lastName: string;
-  nickname: string;
+  /** What the app calls the user, e.g. in the home-screen greeting. */
+  preferredName: string;
   /** Free text for now, e.g. MM/DD/YYYY */
   dateOfBirth: string;
   email: string;
@@ -19,7 +20,7 @@ export type Profile = {
 export const emptyProfile: Profile = {
   firstName: '',
   lastName: '',
-  nickname: '',
+  preferredName: '',
   dateOfBirth: '',
   email: '',
   weightKg: null,
@@ -34,8 +35,12 @@ export function useProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadJson<Profile>(STORAGE_KEY).then((stored) => {
-      if (stored) setSaved({ ...emptyProfile, ...stored });
+    loadJson<Profile & { nickname?: string }>(STORAGE_KEY).then((stored) => {
+      if (stored) {
+        // Profiles saved before the rename used `nickname`; carry it over.
+        const { nickname, ...rest } = stored;
+        setSaved({ ...emptyProfile, ...rest, preferredName: rest.preferredName || nickname || '' });
+      }
       setLoading(false);
     });
   }, []);

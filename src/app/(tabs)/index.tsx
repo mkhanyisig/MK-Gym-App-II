@@ -14,7 +14,7 @@ export default function HomeScreen() {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(makeStyles);
   const { profile } = useProfile();
-  const name = profile.nickname || profile.firstName;
+  const name = profile.preferredName || profile.firstName;
   const window = useWindowDimensions();
   // Fit the ellipse to small screens too: whichever limit is tighter wins.
   const heroWidth = Math.min(window.width * 0.65, (window.height * 0.4) / HERO_ASPECT);

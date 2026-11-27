@@ -61,7 +61,13 @@ export default function ProfileScreen() {
           <FormField flex={1} label="First name" value={draft.firstName} onChangeText={(t) => set('firstName', t)} />
           <FormField flex={1} label="Last name" value={draft.lastName} onChangeText={(t) => set('lastName', t)} />
         </View>
-        <FormField label="Nickname" value={draft.nickname} onChangeText={(t) => set('nickname', t)} />
+        <FormField
+          label="Preferred name"
+          value={draft.preferredName}
+          onChangeText={(t) => set('preferredName', t)}
+          placeholder="What should we call you?"
+          autoComplete="name-given"
+        />
         <FormField
           label="Date of birth"
           value={draft.dateOfBirth}
