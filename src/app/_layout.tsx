@@ -3,6 +3,7 @@ import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 
+import { ReminderSync } from '@/components/ReminderSync';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
 import { AppThemeProvider, fontAssets, useAppTheme } from '@/theme';
 
@@ -47,11 +48,22 @@ function ThemedNavigation() {
       {/* Explicit rather than 'auto' so it follows the app's scheme, including a manual preference. */}
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background } }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* The title names the tabs for back buttons ("My Form, back") instead of "(tabs)". */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'My Form' }} />
         <Stack.Screen name="about" options={{ presentation: 'modal', title: 'About' }} />
-        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+        {/* Opened from the ☰ menu on any tab, so the back button is just the arrow. */}
+        <Stack.Screen
+          name="settings"
+          options={{ title: 'Settings', headerBackButtonDisplayMode: 'minimal' }}
+        />
         <Stack.Screen name="weight" options={{ title: 'Weight', headerBackTitle: 'Home' }} />
+        <Stack.Screen
+          name="notifications"
+          options={{ title: 'Notifications', headerBackButtonDisplayMode: 'minimal' }}
+        />
       </Stack>
+      {/* Keeps scheduled weigh-in reminders in step with weigh-ins and the app's lifecycle. */}
+      <ReminderSync />
     </ThemeProvider>
   );
 }

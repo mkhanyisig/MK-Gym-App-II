@@ -16,6 +16,7 @@ A personal, offline-first fitness companion for tracking training and physical p
 
 - **Home dashboard:** a personalized greeting and at-a-glance metric gauges, led by your current weight and its latest change.
 - **Daily weigh-ins:** log one weight per day, then review, edit or delete your history. Data is stored on the device.
+- **Daily reminders:** optional phone notifications at 10:00, 16:00 and 22:00 on days you haven't logged yet.
 - **Profile and BMI:** name, height and body measurements, with BMI calculated from your latest weigh-in.
 - **Metric or imperial:** kg/cm or lbs/ft-in throughout, with values stored in metric and converted for display.
 - **Workout stopwatch:** start, pause, resume and reset a timer for your session.
