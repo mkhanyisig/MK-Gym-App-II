@@ -4,9 +4,10 @@ import { AppButton } from '@/components/AppButton';
 import { Screen } from '@/components/Screen';
 import { useStopwatch } from '@/hooks/useStopwatch';
 import { formatDuration } from '@/lib/format';
-import { colors, font, spacing } from '@/theme';
+import { font, spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
 export default function TimerScreen() {
+  const styles = useThemedStyles(makeStyles);
   const { status, elapsed, start, pause, resume, reset } = useStopwatch();
 
   const primary =
@@ -39,12 +40,13 @@ export default function TimerScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { justifyContent: 'space-between' },
-  title: { fontSize: font.title, fontWeight: '800', color: colors.text },
-  clockWrap: { alignItems: 'center', gap: spacing.sm },
-  clock: { fontSize: 64, fontWeight: '300', fontVariant: ['tabular-nums'], color: colors.text },
-  status: { fontSize: font.body, color: colors.textMuted },
-  buttons: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
-  button: { flex: 1 },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    container: { justifyContent: 'space-between' },
+    title: { fontSize: font.title, fontWeight: '800', color: c.text },
+    clockWrap: { alignItems: 'center', gap: spacing.sm },
+    clock: { fontSize: 64, fontWeight: '300', fontVariant: ['tabular-nums'], color: c.text },
+    status: { fontSize: font.body, color: c.textMuted },
+    buttons: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
+    button: { flex: 1 },
+  });

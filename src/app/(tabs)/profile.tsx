@@ -8,9 +8,11 @@ import { FormField } from '@/components/FormField';
 import { MeasurementsForm } from '@/components/MeasurementsForm';
 import { Screen } from '@/components/Screen';
 import { type Profile, useProfile } from '@/hooks/useProfile';
-import { colors, font, spacing } from '@/theme';
+import { font, spacing, type ThemeColors, useAppTheme, useThemedStyles } from '@/theme';
 
 export default function ProfileScreen() {
+  const { colors } = useAppTheme();
+  const styles = useThemedStyles(makeStyles);
   const { profile, loading, save, clear } = useProfile();
   const [draft, setDraft] = useState<Profile>(profile);
   // Bumped whenever the draft is replaced wholesale, so the measurements form re-syncs.
@@ -43,7 +45,7 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <Screen style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={colors.primary} />
       </Screen>
     );
   }
@@ -85,7 +87,10 @@ export default function ProfileScreen() {
               set('units', v ? 'metric' : 'imperial');
               setFormVersion((n) => n + 1);
             }}
-            trackColor={{ true: colors.info, false: colors.border }}
+            trackColor={{ true: colors.highlight, false: colors.border }}
+            thumbColor={metric ? colors.onPrimary : undefined}
+            // react-native-web colors the "on" thumb with activeThumbColor instead.
+            {...{ activeThumbColor: colors.onPrimary }}
           />
         </View>
         <MeasurementsForm
@@ -117,11 +122,12 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: font.title, fontWeight: '800', color: colors.text },
-  row: { flexDirection: 'row', gap: spacing.md },
-  toggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  toggleLabel: { fontSize: font.body, color: colors.text },
-  actions: { gap: spacing.sm, marginBottom: spacing.xl },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    title: { fontSize: font.title, fontWeight: '800', color: c.text },
+    row: { flexDirection: 'row', gap: spacing.md },
+    toggle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    toggleLabel: { fontSize: font.body, color: c.text },
+    actions: { gap: spacing.sm, marginBottom: spacing.xl },
+  });
