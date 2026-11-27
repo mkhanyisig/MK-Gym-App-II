@@ -27,6 +27,7 @@ type Metric = Omit<MetricCircleProps, 'size'>;
 /**
  * The four Home metrics. Only body weight has a real source today (the profile);
  * the others show neutral placeholders until workout sessions are recorded.
+ * Each links to its section where one exists; Health has no section yet.
  */
 function buildMetrics(profile: Profile): Metric[] {
   const metric = profile.units === 'metric';
@@ -53,13 +54,15 @@ function buildMetrics(profile: Profile): Metric[] {
       label: 'Last workout',
       icon: 'barbell-outline',
       caption: 'None yet',
-      accessibilityLabel: 'Last workout, none recorded yet.',
+      href: '/workouts',
+      accessibilityLabel: 'Last workout, none recorded yet. Opens your workout log.',
     },
     {
       label: 'This week',
       icon: 'calendar-outline',
       caption: 'No sessions',
-      accessibilityLabel: 'This week, no sessions recorded yet.',
+      href: '/timer',
+      accessibilityLabel: 'This week, no sessions recorded yet. Opens the timer to start one.',
     },
     {
       label: 'Health',
@@ -116,7 +119,7 @@ export default function HomeScreen() {
         </View>
 
         <Link href="/about" style={styles.about}>
-          <AppText variant="label" tone="muted">
+          <AppText variant="small" tone="muted">
             About My Form.
           </AppText>
         </Link>
