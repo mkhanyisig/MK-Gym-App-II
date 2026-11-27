@@ -28,6 +28,10 @@ export type ThemeColors = {
    * Used sparingly; placeholders use `textMuted` instead.
    */
   accent: string;
+  /** Brand red (a lighter take on the portrait's burgundy shorts), behind the My FORM title. */
+  brand: string;
+  /** Text on `brand`. */
+  onBrand: string;
 };
 
 export type ColorScheme = 'light' | 'dark';
@@ -46,6 +50,8 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     onDanger: '#FFF8F0',
     shadow: '#1F1A15',
     accent: '#2457E6',
+    brand: '#A8474A',
+    onBrand: '#FFF8F0',
   },
   dark: {
     background: '#121214',
@@ -60,6 +66,8 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     onDanger: '#121214',
     shadow: '#000000',
     accent: '#5B9BFF',
+    brand: '#B5534F',
+    onBrand: '#FFF8F0',
   },
 };
 

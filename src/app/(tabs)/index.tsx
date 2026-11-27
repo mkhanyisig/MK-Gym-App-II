@@ -1,6 +1,6 @@
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { AppButton } from '@/components/AppButton';
 import { AppText } from '@/components/AppText';
@@ -15,7 +15,7 @@ import { useNow } from '@/hooks/useNow';
 import { type Profile, useProfile } from '@/hooks/useProfile';
 import { greeting, welcomeLine } from '@/lib/greeting';
 import { kgToLbs, round } from '@/lib/units';
-import { spacing, type ThemeColors, useThemedStyles } from '@/theme';
+import { radius, spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
 /** Matches the content width cap so the layout stays readable on tablets and wide windows. */
 const MAX_CONTENT_WIDTH = 560;
@@ -97,7 +97,7 @@ export default function HomeScreen() {
   // (and never wider than the content). Short phones have no spare height, so it stays at base.
   const [portraitSlot, setPortraitSlot] = useState(0);
   const maxPortraitSize = Math.min(Math.round(basePortraitSize * PORTRAIT_GROWTH), contentWidth);
-  const portraitSize = Math.max(basePortraitSize, Math.min(portraitSlot, maxPortraitSize));
+  const portraitSize = Math.min(Math.max(basePortraitSize, portraitSlot), maxPortraitSize);
 
   return (
     <Screen scroll onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}>
@@ -108,17 +108,21 @@ export default function HomeScreen() {
           style={[styles.firstScreen, short && styles.firstScreenCompact, { minHeight: firstScreenMinHeight }]}
         >
           <View style={styles.brand}>
-            <AppText
-              variant="wordmark"
-              accessibilityRole="header"
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              // Already display-sized: don't scale with system text, which would overflow.
-              maxFontSizeMultiplier={1}
-              style={[styles.center, short && styles.wordmarkCompact]}
-            >
-              My Form<Text style={styles.stop}>.</Text>
-            </AppText>
+            <View style={styles.titleBadge}>
+              <AppText
+                variant="wordmark"
+                accessibilityRole="header"
+                // Spoken as words, not spelled out ("F-O-R-M").
+                accessibilityLabel="My Form"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                // Already display-sized: don't scale with system text, which would overflow.
+                maxFontSizeMultiplier={1}
+                style={[styles.center, styles.titleText, short && styles.wordmarkCompact]}
+              >
+                My FORM.
+              </AppText>
+            </View>
             <AppText variant="small" tone="muted" style={styles.center}>
               Train with intention.
             </AppText>
@@ -137,7 +141,11 @@ export default function HomeScreen() {
             style={[styles.portrait, { minHeight: basePortraitSize }]}
             onLayout={(e) => setPortraitSlot(Math.floor(e.nativeEvent.layout.height))}
           >
-            <HomeIllustration size={portraitSize} />
+            {/* Absolutely positioned so the slot's height comes only from the spare space,
+                never from the image itself; it can then shrink if content above grows. */}
+            <View style={styles.portraitFill}>
+              <HomeIllustration size={portraitSize} />
+            </View>
           </View>
 
           <MetricGrid metrics={buildMetrics(profile)} width={contentWidth} />
@@ -165,15 +173,24 @@ const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
     page: { width: '100%', maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', gap: SECTION_GAP },
     firstScreen: { gap: SECTION_GAP },
-    firstScreenCompact: { gap: 14 },
+    firstScreenCompact: { gap: 12 },
     center: { textAlign: 'center' },
-    wordmarkCompact: { fontSize: 74, lineHeight: 74 },
-    brand: { alignItems: 'center', gap: 2 },
-    stop: { color: c.highlight },
+    wordmarkCompact: { fontSize: 68, lineHeight: 68 },
+    brand: { alignItems: 'center', gap: spacing.sm },
+    // Filled, rounded title block in the brand red.
+    titleBadge: {
+      backgroundColor: c.brand,
+      borderRadius: radius.lg,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.xs,
+      paddingBottom: spacing.sm,
+    },
+    titleText: { color: c.onBrand },
     greeting: { alignItems: 'center', gap: 2 },
     // Takes the first screen's spare height so the portrait can grow and Begin Session
     // stays at the bottom; any space beyond the portrait's maximum is split above and below it.
-    portrait: { flexGrow: 1, alignItems: 'center', justifyContent: 'center' },
+    portrait: { flexGrow: 1 },
+    portraitFill: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
     recent: { gap: spacing.md },
     about: { alignSelf: 'center', paddingVertical: spacing.md },
   });
