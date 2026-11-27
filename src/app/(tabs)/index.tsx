@@ -15,7 +15,7 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { useNow } from '@/hooks/useNow';
 import { type Profile, useProfile } from '@/hooks/useProfile';
 import { greeting, welcomeLine } from '@/lib/greeting';
-import { kgToLbs, round } from '@/lib/units';
+import { formatWeight } from '@/lib/units';
 import { fontFamily, spacing, type ThemeColors, useThemedStyles } from '@/theme';
 
 /** Matches the content width cap so the layout stays readable on tablets and wide windows. */
@@ -42,18 +42,16 @@ type Metric = Omit<MetricCircleProps, 'size'>;
  * Each links to its section where one exists; Health has no section yet.
  */
 function buildMetrics(profile: Profile): Metric[] {
-  const metric = profile.units === 'metric';
-  const weight =
-    profile.weightKg == null ? null : String(round(metric ? profile.weightKg : kgToLbs(profile.weightKg)));
+  const weight = formatWeight(profile.weightKg, profile.units);
 
   return [
     weight != null
       ? {
           label: 'Weight',
-          value: weight,
-          unit: metric ? 'kg' : 'lbs',
+          value: weight.value,
+          unit: weight.unit,
           href: '/profile',
-          accessibilityLabel: `Weight, ${weight} ${metric ? 'kilograms' : 'pounds'}. Opens your profile.`,
+          accessibilityLabel: `Weight, ${weight.spoken}. Opens your profile.`,
         }
       : {
           label: 'Weight',
