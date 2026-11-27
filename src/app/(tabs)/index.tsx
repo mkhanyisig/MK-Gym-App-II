@@ -7,6 +7,7 @@ import { AppText } from '@/components/AppText';
 import { EmptyState } from '@/components/EmptyState';
 import { HomeIllustration } from '@/components/HomeIllustration';
 import { MenuButton } from '@/components/MenuButton';
+import { NotificationsButton } from '@/components/NotificationsButton';
 import type { MetricCircleProps } from '@/components/MetricCircle';
 import { MetricGrid } from '@/components/MetricGrid';
 import { Rule } from '@/components/Rule';
@@ -102,7 +103,11 @@ export default function HomeScreen() {
           {/* Home has no header bar: the menu sits beside the title, and its dropdown
               opens as an overlay, so no space is reserved for it. */}
           <View style={styles.brand}>
-            <MenuButton />
+            {/* ☰ menu with the reminders bell beneath it, so the title keeps its width. */}
+            <View style={styles.sideButtons}>
+              <MenuButton />
+              <NotificationsButton />
+            </View>
             <View style={styles.titleBadge}>
               <AppText
                 variant="wordmark"
@@ -185,6 +190,7 @@ const makeStyles = (c: ThemeColors) =>
     // Menu button and title block share the top row. The button is pinned to the
     // top-left corner, and the row is pulled up toward the status bar.
     brand: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, marginTop: -spacing.sm },
+    sideButtons: { gap: spacing.sm, alignItems: 'center' },
     // The brand block fills the rest of the row, holding the wordmark and tagline.
     titleBadge: {
       flex: 1,
