@@ -21,6 +21,8 @@ export type ThemeColors = {
   danger: string;
   /** Text and icons on `danger`. */
   onDanger: string;
+  /** Drop shadow for floating surfaces (menus). */
+  shadow: string;
 };
 
 export type ColorScheme = 'light' | 'dark';
@@ -37,6 +39,7 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     highlight: '#7A5C30',
     danger: '#9E3B2F',
     onDanger: '#FFF8F0',
+    shadow: '#1F1A15',
   },
   dark: {
     background: '#121214',
@@ -49,6 +52,7 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     highlight: '#C8A56A',
     danger: '#D9796B',
     onDanger: '#121214',
+    shadow: '#000000',
   },
 };
 
