@@ -1,10 +1,16 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
+import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 
-import { AppThemeProvider, useAppTheme } from '@/theme';
+import { AppThemeProvider, fontAssets, useAppTheme } from '@/theme';
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(fontAssets);
+  // Wait for the brand fonts to avoid a flash of system type. If they fail, carry on
+  // with system fonts rather than showing a blank screen.
+  if (!fontsLoaded && !fontError) return null;
+
   return (
     <AppThemeProvider>
       <ThemedNavigation />
