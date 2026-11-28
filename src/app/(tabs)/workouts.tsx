@@ -30,7 +30,7 @@ export default function WorkoutsScreen() {
         contentContainerStyle={styles.list}
         style={styles.flex}
       />
-      <AppButton title="Add workout" onPress={() => router.navigate('/timer')} />
+      <AppButton title="Add workout" onPress={() => router.navigate('/clock')} />
     </Screen>
   );
 }

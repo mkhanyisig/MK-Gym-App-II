@@ -38,6 +38,18 @@ export type ThemeColors = {
    * The brand block and its text use the same values in light and dark mode.
    */
   onBrandAccent: string;
+  /**
+   * Clock action palette (iOS Clock–style): `go` for Start/Resume, `caution` for Pause and
+   * a running countdown, `control` for neutral Lap/Reset/Cancel. Each `on*` meets AA on its fill.
+   */
+  go: string;
+  onGo: string;
+  caution: string;
+  onCaution: string;
+  /** Neutral round control fill; its text is `text`. */
+  control: string;
+  /** The running countdown's progress ring (at least 3:1 on `background`). */
+  progress: string;
 };
 
 export type ColorScheme = 'light' | 'dark';
@@ -59,6 +71,12 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     brand: '#8E3A3E',
     onBrand: '#FFF8F0',
     onBrandAccent: '#F0CC85',
+    go: '#2B7040',
+    onGo: '#FFF8F0',
+    caution: '#9E5409',
+    onCaution: '#FFF8F0',
+    control: '#DCCDB8',
+    progress: '#B4600E',
   },
   dark: {
     background: '#121214',
@@ -76,6 +94,12 @@ export const palettes: Record<ColorScheme, ThemeColors> = {
     brand: '#8E3A3E',
     onBrand: '#FFF8F0',
     onBrandAccent: '#F0CC85',
+    go: '#24482D',
+    onGo: '#8BE39A',
+    caution: '#5A3C18',
+    onCaution: '#F5B05A',
+    control: '#333338',
+    progress: '#F2A541',
   },
 };
 

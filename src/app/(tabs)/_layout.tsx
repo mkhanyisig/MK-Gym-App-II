@@ -36,8 +36,9 @@ export default function TabsLayout() {
         options={{ title: 'Home', headerShown: false, tabBarIcon: tabIcon('home') }}
       />
       <Tabs.Screen name="workouts" options={{ title: 'Workouts', tabBarIcon: tabIcon('barbell') }} />
-      <Tabs.Screen name="timer" options={{ title: 'Timer', tabBarIcon: tabIcon('stopwatch') }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: tabIcon('person') }} />
+      <Tabs.Screen name="clock" options={{ title: 'Clock', tabBarIcon: tabIcon('stopwatch') }} />
+      {/* Profile lives in the ☰ menu (src/app/profile.tsx). */}
+      <Tabs.Screen name="form" options={{ title: 'Form', tabBarIcon: tabIcon('stats-chart') }} />
     </Tabs>
   );
 }

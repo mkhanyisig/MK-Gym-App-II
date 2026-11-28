@@ -10,6 +10,7 @@ type MenuItem = { label: string; icon: ComponentProps<typeof Ionicons>['name']; 
 
 /** App menu entries. Add future features here. */
 const MENU_ITEMS: MenuItem[] = [
+  { label: 'Profile', icon: 'person-outline', href: '/profile' },
   { label: 'Settings', icon: 'settings-outline', href: '/settings' },
   { label: 'Notifications', icon: 'notifications-outline', href: '/notifications' },
 ];

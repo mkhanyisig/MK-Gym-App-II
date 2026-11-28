@@ -17,9 +17,10 @@ A personal, offline-first fitness companion for tracking training and physical p
 - **Home dashboard:** a personalized greeting and at-a-glance metric gauges, led by your current weight and its latest change.
 - **Daily weigh-ins:** log one weight per day, then review, edit or delete your history. Data is stored on the device.
 - **Daily reminders:** optional phone notifications at 10:00, 16:00 and 22:00 on days you haven't logged yet.
-- **Profile and BMI:** name, height and body measurements, with BMI calculated from your latest weigh-in.
+- **Form:** a summary of your current weight, its latest change and your BMI, with training metrics to come.
+- **Profile and BMI:** name, height and body measurements, with BMI calculated from your latest weigh-in. Open it from the ☰ menu.
 - **Metric or imperial:** kg/cm or lbs/ft-in throughout, with values stored in metric and converted for display.
-- **Workout stopwatch:** start, pause, resume and reset a timer for your session.
+- **Clock:** a stopwatch with laps, and a countdown set with hour, minute and second wheels (or 30/60/90-second presets) that runs inside a progress ring. Both keep time if you leave or close the app. On your phone, a running countdown shows its end time on the lock screen and "Time's up" plays your alert sound.
 - **Light and dark themes:** follow the system setting or choose one in Settings.
 
 ## Tech Stack

@@ -1,47 +1,35 @@
-import { useEffect, useRef, useState } from 'react';
+import { useClockNow } from '@/hooks/useClockNow';
+import { usePersistedState } from '@/hooks/usePersistedState';
+import {
+  lapStopwatch,
+  newStopwatch,
+  pauseStopwatch,
+  resetStopwatch,
+  STOPWATCH_STORAGE_KEY,
+  restoreStopwatch,
+  startStopwatch,
+  stopwatchElapsed,
+  stopwatchLaps,
+} from '@/lib/clock';
 
-type Status = 'idle' | 'running' | 'paused';
+/** Hundredths show for the first hour, so refresh about 20 times a second while running. */
+const TICK_MS = 50;
 
 /**
- * Timestamp-based stopwatch: elapsed time is derived from Date.now(), so it
- * stays accurate even if ticks are delayed (e.g. app in background).
+ * A stopwatch with laps, backed by the timestamp model in src/lib/clock.ts. It's saved on
+ * the device, so it survives the app being closed (and keeps counting if it was running).
  */
-export function useStopwatch(tickMs = 250) {
-  const [status, setStatus] = useState<Status>('idle');
-  const [elapsed, setElapsed] = useState(0);
-  const startedAt = useRef<number | null>(null);
-  const accumulated = useRef(0);
+export function useStopwatch() {
+  const [sw, setSw] = usePersistedState(STOPWATCH_STORAGE_KEY, newStopwatch, restoreStopwatch);
+  const now = useClockNow(sw.status === 'running', TICK_MS);
 
-  useEffect(() => {
-    if (status !== 'running') return;
-    const id = setInterval(() => {
-      if (startedAt.current != null) {
-        setElapsed(accumulated.current + Date.now() - startedAt.current);
-      }
-    }, tickMs);
-    return () => clearInterval(id);
-  }, [status, tickMs]);
-
-  const start = () => {
-    startedAt.current = Date.now();
-    setStatus('running');
+  return {
+    status: sw.status,
+    elapsedMs: stopwatchElapsed(sw, now),
+    laps: stopwatchLaps(sw, now),
+    start: () => setSw((s) => startStopwatch(s, Date.now())),
+    pause: () => setSw((s) => pauseStopwatch(s, Date.now())),
+    lap: () => setSw((s) => lapStopwatch(s, Date.now())),
+    reset: () => setSw((s) => resetStopwatch(s)),
   };
-
-  const pause = () => {
-    if (startedAt.current != null) {
-      accumulated.current += Date.now() - startedAt.current;
-      startedAt.current = null;
-    }
-    setElapsed(accumulated.current);
-    setStatus('paused');
-  };
-
-  const reset = () => {
-    startedAt.current = null;
-    accumulated.current = 0;
-    setElapsed(0);
-    setStatus('idle');
-  };
-
-  return { status, elapsed, start, pause, resume: start, reset };
 }

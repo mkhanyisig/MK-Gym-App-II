@@ -1,10 +1,11 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
+import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider, type Theme } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { ReminderSync } from '@/components/ReminderSync';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
+import { clearStaleCountdownStatus, onCountdownNotificationOpened } from '@/notifications/countdown';
 import { AppThemeProvider, fontAssets, useAppTheme } from '@/theme';
 
 export default function RootLayout() {
@@ -25,6 +26,15 @@ export default function RootLayout() {
 
 function ThemedNavigation() {
   const { scheme, colors } = useAppTheme();
+
+  // Tapping a countdown notification (status note or "Time's up") opens the Clock.
+  useEffect(() => onCountdownNotificationOpened(() => router.navigate('/clock')), []);
+  // Remove a "Countdown running" note left over from a countdown that ended while closed.
+  useEffect(() => {
+    clearStaleCountdownStatus().catch((error: unknown) => {
+      console.warn('Could not tidy countdown notifications', error);
+    });
+  }, []);
 
   // Navigation chrome (headers, tab bar, modal) reads these colors.
   const navigationTheme = useMemo<Theme>(() => {
@@ -57,6 +67,7 @@ function ThemedNavigation() {
           options={{ title: 'Settings', headerBackButtonDisplayMode: 'minimal' }}
         />
         <Stack.Screen name="weight" options={{ title: 'Weight', headerBackTitle: 'Home' }} />
+        <Stack.Screen name="profile" options={{ title: 'Profile', headerBackButtonDisplayMode: 'minimal' }} />
         <Stack.Screen
           name="notifications"
           options={{ title: 'Notifications', headerBackButtonDisplayMode: 'minimal' }}
