@@ -1,14 +1,16 @@
 import {
   countdownAlertAt,
   countdownDone,
+  countdownProgress,
   countdownRemaining,
   formatCountdown,
   formatStopwatch,
+  isValidCountdownMs,
+  joinDuration,
   lapStopwatch,
   MAX_COUNTDOWN_MS,
   newCountdown,
   newStopwatch,
-  parseCountdownInput,
   pauseCountdown,
   pauseStopwatch,
   resetCountdown,
@@ -16,6 +18,7 @@ import {
   restoreCountdown,
   restoreStopwatch,
   setCountdownDuration,
+  splitDuration,
   spokenDuration,
   startCountdown,
   startStopwatch,
@@ -147,11 +150,13 @@ describe('display', () => {
   });
 
   it.each([
-    [90_000, '1:30'],
-    [59_001, '1:00'], // rounds up: never shows 0:00 early
-    [400, '0:01'],
-    [0, '0:00'],
-    [-50, '0:00'],
+    [90_000, '01:30'],
+    [59_001, '01:00'], // rounds up: never shows 00:00 early
+    [400, '00:01'],
+    [0, '00:00'],
+    [-50, '00:00'],
+    [3_600_000, '01:00:00'],
+    [MAX_COUNTDOWN_MS, '23:59:59'],
   ])('formatCountdown(%p) → %s', (ms, text) => {
     expect(formatCountdown(ms)).toBe(text);
   });
@@ -161,31 +166,56 @@ describe('display', () => {
     expect(spokenDuration(60_000)).toBe('1 minute');
     expect(spokenDuration(1_000)).toBe('1 second');
     expect(spokenDuration(0)).toBe('0 seconds');
+    expect(spokenDuration(3_661_000)).toBe('1 hour 1 minute 1 second');
+    expect(spokenDuration(7_200_000)).toBe('2 hours');
   });
 });
 
-describe('parseCountdownInput', () => {
-  it('reads minutes and seconds, treating blank as zero', () => {
-    expect(parseCountdownInput('2', '30')).toEqual({ ok: true, durationMs: 150_000 });
-    expect(parseCountdownInput('', '45')).toEqual({ ok: true, durationMs: 45_000 });
-    expect(parseCountdownInput(' 5 ', '')).toEqual({ ok: true, durationMs: 300_000 });
+describe('duration parts (picker wheels)', () => {
+  it('splits and joins hours, minutes and seconds', () => {
+    expect(splitDuration(3_723_000)).toEqual({ hours: 1, minutes: 2, seconds: 3 });
+    expect(joinDuration({ hours: 1, minutes: 2, seconds: 3 })).toBe(3_723_000);
+    expect(splitDuration(MAX_COUNTDOWN_MS)).toEqual({ hours: 23, minutes: 59, seconds: 59 });
+    expect(splitDuration(0)).toEqual({ hours: 0, minutes: 0, seconds: 0 });
   });
 
-  it('rejects a zero duration', () => {
-    expect(parseCountdownInput('0', '0')).toMatchObject({ ok: false });
-    expect(parseCountdownInput('', '')).toMatchObject({ ok: false });
+  it('round-trips every preset and the maximum', () => {
+    for (const ms of [30_000, 60_000, 90_000, MAX_COUNTDOWN_MS]) {
+      expect(joinDuration(splitDuration(ms))).toBe(ms);
+    }
   });
 
-  it('rejects out-of-range and non-numeric values', () => {
-    expect(parseCountdownInput('1', '60')).toMatchObject({ ok: false });
-    expect(parseCountdownInput('100', '0')).toMatchObject({ ok: false });
-    expect(parseCountdownInput('-1', '30')).toMatchObject({ ok: false });
-    expect(parseCountdownInput('1.5', '0')).toMatchObject({ ok: false });
-    expect(parseCountdownInput('a', '0')).toMatchObject({ ok: false });
+  it('allows hours up to 23 and rejects a zero total', () => {
+    expect(isValidCountdownMs(joinDuration({ hours: 23, minutes: 59, seconds: 59 }))).toBe(true);
+    expect(isValidCountdownMs(joinDuration({ hours: 24, minutes: 0, seconds: 0 }))).toBe(false);
+    expect(isValidCountdownMs(joinDuration({ hours: 0, minutes: 0, seconds: 0 }))).toBe(false);
+  });
+});
+
+describe('countdownProgress (ring)', () => {
+  it('starts full, falls with time, freezes while paused, and is empty when finished', () => {
+    const idle = newCountdown(100_000);
+    expect(countdownProgress(idle, 0)).toBe(1);
+    const running = startCountdown(idle, 0);
+    expect(countdownProgress(running, 25_000)).toBe(0.75);
+    const paused = pauseCountdown(running, 40_000);
+    expect(countdownProgress(paused, 40_000)).toBe(0.6);
+    expect(countdownProgress(paused, 90_000)).toBe(0.6);
+    const resumed = startCountdown(paused, 90_000);
+    expect(countdownProgress(resumed, 120_000)).toBeCloseTo(0.3);
+    expect(countdownProgress(resumed, 500_000)).toBe(0);
   });
 
-  it('accepts the maximum', () => {
-    expect(parseCountdownInput('99', '59')).toEqual({ ok: true, durationMs: MAX_COUNTDOWN_MS });
+  it('is right straight after a long time in the background', () => {
+    const running = startCountdown(newCountdown(600_000), 0);
+    expect(countdownProgress(running, 450_000)).toBe(0.25);
+  });
+
+  it('cancel and restart keep the chosen duration', () => {
+    const done = startCountdown(newCountdown(90_000), 0);
+    const cancelled = resetCountdown(done);
+    expect(cancelled).toEqual(newCountdown(90_000));
+    expect(countdownProgress(startCountdown(cancelled, 200_000), 200_000)).toBe(1);
   });
 });
 
@@ -236,6 +266,13 @@ describe('restoring saved clocks', () => {
     const restored = restoreCountdown(JSON.parse(JSON.stringify(running)))!;
     expect(countdownDone(restored, 200_000)).toBe(true);
     expect(countdownRemaining(restored, 200_000)).toBe(0);
+  });
+
+  it('restores countdowns saved before the hour wheel (old 99:59 limit)', () => {
+    const old = { status: 'paused', durationMs: 5_999_000, remainingMs: 4_000_000, endsAt: null };
+    expect(restoreCountdown(old)).toEqual(old);
+    const oldRunning = { status: 'running', durationMs: 90_000, remainingMs: 90_000, endsAt: 1_000_000 };
+    expect(restoreCountdown(oldRunning)).toEqual(oldRunning);
   });
 
   it('rejects missing, malformed or inconsistent data', () => {

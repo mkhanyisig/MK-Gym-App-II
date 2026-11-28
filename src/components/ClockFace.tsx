@@ -1,48 +1,42 @@
-import { StyleSheet, Text, useWindowDimensions } from 'react-native';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { FixedDigits, fixedDigitsEm } from '@/components/FixedDigits';
 import { fontFamily, type ThemeColors, useThemedStyles } from '@/theme';
 
 type Props = {
   text: string;
   /** Spoken version, e.g. "1 minute 30 seconds". */
   accessibilityLabel: string;
-  /** Highlights a finished countdown. */
-  emphasis?: boolean;
+  /** Colours the time, e.g. a finished countdown. Defaults to the text colour. */
+  color?: string;
+  /** Largest font size to use; defaults to 76. */
+  size?: number;
+  /** Width the time must fit in; defaults to the screen width less the page margins. */
+  maxWidth?: number;
 };
 
-/** The large time display. Tabular figures keep digits from jumping as they change. */
-export function ClockFace({ text, accessibilityLabel, emphasis = false }: Props) {
+/**
+ * The large time display. Each digit sits in a fixed-width cell (see FixedDigits), so
+ * the time stays perfectly still as it counts. The font shrinks only as needed to fit.
+ */
+export function ClockFace({ text, accessibilityLabel, color, size = 76, maxWidth }: Props) {
   const styles = useThemedStyles(makeStyles);
   const { width } = useWindowDimensions();
-  // Fits "00:00.00" across small phones; longer "1:02:03.45" gets a little smaller.
-  const base = Math.min(76, Math.round(width * 0.19));
-  const size = text.length > 8 ? Math.round(base * 0.8) : base;
+  const available = maxWidth ?? width - 40;
+  const fontSize = Math.floor(Math.min(size, available / fixedDigitsEm(text)));
 
   return (
-    <Text
-      accessibilityRole="timer"
-      accessibilityLabel={accessibilityLabel}
-      numberOfLines={1}
-      adjustsFontSizeToFit
-      maxFontSizeMultiplier={1}
-      style={[
-        styles.face,
-        { fontSize: size, lineHeight: Math.round(size * 1.15) },
-        emphasis && styles.emphasis,
-      ]}
-    >
-      {text}
-    </Text>
+    <View accessible accessibilityRole="timer" accessibilityLabel={accessibilityLabel}>
+      <FixedDigits
+        text={text}
+        fontSize={fontSize}
+        style={[styles.face, { lineHeight: Math.round(fontSize * 1.15) }, color != null && { color }]}
+      />
+    </View>
   );
 }
 
 const makeStyles = (c: ThemeColors) =>
   StyleSheet.create({
-    face: {
-      fontFamily: fontFamily.sans,
-      fontVariant: ['tabular-nums'],
-      color: c.text,
-      textAlign: 'center',
-    },
-    emphasis: { color: c.highlight },
+    face: { fontFamily: fontFamily.sans, color: c.text },
   });

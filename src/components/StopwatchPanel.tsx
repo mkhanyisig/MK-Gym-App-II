@@ -46,16 +46,29 @@ export function StopwatchPanel({ stopwatch }: Props) {
 
       <View style={styles.buttons}>
         {paused ? (
-          <ClockButton label="Reset" onPress={onReset} accessibilityLabel="Reset stopwatch" />
+          <ClockButton label="Reset" icon="refresh" onPress={onReset} accessibilityLabel="Reset stopwatch" />
         ) : (
-          <ClockButton label="Lap" onPress={lap} disabled={!running} accessibilityLabel="Record a lap" />
+          <ClockButton
+            label="Lap"
+            icon="flag-outline"
+            onPress={lap}
+            disabled={!running}
+            accessibilityLabel="Record a lap"
+          />
         )}
         {running ? (
-          <ClockButton label="Pause" onPress={pause} accessibilityLabel="Pause stopwatch" />
+          <ClockButton
+            label="Pause"
+            icon="pause"
+            variant="caution"
+            onPress={pause}
+            accessibilityLabel="Pause stopwatch"
+          />
         ) : (
           <ClockButton
             label={paused ? 'Resume' : 'Start'}
-            variant="primary"
+            icon="play"
+            variant="go"
             onPress={start}
             accessibilityLabel={paused ? 'Resume stopwatch' : 'Start stopwatch'}
           />

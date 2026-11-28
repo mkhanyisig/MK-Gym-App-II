@@ -1,21 +1,37 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
+import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { textVariants, type ThemeColors, useThemedStyles } from '@/theme';
+import { textVariants, type ThemeColors, useAppTheme, useThemedStyles } from '@/theme';
+
+export type ClockButtonVariant = 'go' | 'caution' | 'neutral';
 
 type Props = {
   label: string;
   onPress: () => void;
-  /** `primary` for Start/Resume, `neutral` for Pause, Lap and Reset. */
-  variant?: 'primary' | 'neutral';
+  /** `go` for Start/Resume/Restart, `caution` for Pause, `neutral` for Lap, Reset and Cancel. */
+  variant?: ClockButtonVariant;
+  icon?: ComponentProps<typeof Ionicons>['name'];
   disabled?: boolean;
   /** Spoken label, e.g. "Start stopwatch". */
   accessibilityLabel: string;
 };
 
-/** A large round Clock control, in the spirit of the iOS Clock app. */
-export function ClockButton({ label, onPress, variant = 'neutral', disabled, accessibilityLabel }: Props) {
+/**
+ * A large round timer control in the spirit of the iOS Clock app. It knows nothing about
+ * timing, so any timer (stopwatch, countdown, future rest timers) can use it.
+ */
+export function ClockButton({
+  label,
+  onPress,
+  variant = 'neutral',
+  icon,
+  disabled,
+  accessibilityLabel,
+}: Props) {
+  const { colors } = useAppTheme();
   const styles = useThemedStyles(makeStyles);
-  const primary = variant === 'primary';
+  const fg = variant === 'go' ? colors.onGo : variant === 'caution' ? colors.onCaution : colors.text;
 
   return (
     <Pressable
@@ -26,12 +42,15 @@ export function ClockButton({ label, onPress, variant = 'neutral', disabled, acc
       accessibilityState={{ disabled: !!disabled }}
       style={({ pressed }) => [
         styles.button,
-        primary ? styles.primary : styles.neutral,
+        styles[variant],
         pressed && styles.pressed,
         disabled && styles.disabled,
       ]}
     >
-      <Text style={[styles.label, primary ? styles.primaryLabel : styles.neutralLabel]}>{label}</Text>
+      {icon ? <Ionicons name={icon} size={22} color={fg} /> : null}
+      <Text style={[styles.label, { color: fg }]} numberOfLines={1} maxFontSizeMultiplier={1.2}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -46,12 +65,12 @@ const makeStyles = (c: ThemeColors) =>
       borderRadius: SIZE / 2,
       alignItems: 'center',
       justifyContent: 'center',
+      gap: 2,
     },
-    primary: { backgroundColor: c.primary },
-    neutral: { backgroundColor: c.surface, borderWidth: 1, borderColor: c.border },
-    pressed: { opacity: 0.75 },
-    disabled: { opacity: 0.35 },
-    label: { ...textVariants.button, letterSpacing: 1 },
-    primaryLabel: { color: c.onPrimary },
-    neutralLabel: { color: c.text },
+    go: { backgroundColor: c.go },
+    caution: { backgroundColor: c.caution },
+    neutral: { backgroundColor: c.control },
+    pressed: { opacity: 0.75, transform: [{ scale: 0.97 }] },
+    disabled: { opacity: 0.4 },
+    label: { ...textVariants.button, fontSize: 12, letterSpacing: 1 },
   });

@@ -78,8 +78,11 @@ export function stopwatchLaps(sw: Stopwatch, now: number): Lap[] {
 
 // ── Countdown ──────────────────────────────────────────────────────────────
 
-/** Longest countdown the picker allows: 99:59. */
-export const MAX_COUNTDOWN_MS = (99 * 60 + 59) * 1000;
+/**
+ * Longest countdown the picker allows: 23:59:59 (hours 0–23). It was 99:59 before the
+ * hour wheel; saved countdowns from then are all shorter, so they still restore.
+ */
+export const MAX_COUNTDOWN_MS = ((23 * 60 + 59) * 60 + 59) * 1000;
 
 export type Countdown = {
   status: ClockStatus;
@@ -133,6 +136,27 @@ export function pauseCountdown(cd: Countdown, now: number): Countdown {
 /** Back to the full chosen length, ready to start again. */
 export const resetCountdown = (cd: Countdown): Countdown => newCountdown(cd.durationMs);
 
+/**
+ * How much of the countdown is left, from 1 (full, not started) to 0 (finished), for the
+ * progress ring. It follows the remaining time, so it freezes while paused and is
+ * correct straight after the app returns from the background.
+ */
+export function countdownProgress(cd: Countdown, now: number): number {
+  return Math.min(1, Math.max(0, countdownRemaining(cd, now) / cd.durationMs));
+}
+
+export type DurationParts = { hours: number; minutes: number; seconds: number };
+
+/** Splits a duration into whole hours, minutes and seconds (for the picker wheels). */
+export function splitDuration(ms: number): DurationParts {
+  const total = Math.max(0, Math.round(ms / 1000));
+  return { hours: Math.floor(total / 3600), minutes: Math.floor(total / 60) % 60, seconds: total % 60 };
+}
+
+/** The duration in ms for whole hours, minutes and seconds (the inverse of splitDuration). */
+export const joinDuration = ({ hours, minutes, seconds }: DurationParts): number =>
+  ((hours * 60 + minutes) * 60 + seconds) * 1000;
+
 // ── Display ────────────────────────────────────────────────────────────────
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
@@ -149,45 +173,21 @@ export function formatStopwatch(ms: number): string {
 }
 
 /**
- * Countdown time: "m:ss", rounding up so it shows 0:01 until the last moment and only
- * reads 0:00 when time is actually up.
+ * Countdown time: "mm:ss", or "hh:mm:ss" from an hour (like the stopwatch). Rounds up, so it shows 00:01 until
+ * the last moment and only reads 00:00 when time is actually up.
  */
 export function formatCountdown(ms: number): string {
-  const total = Math.max(0, Math.ceil(ms / 1000));
-  return `${Math.floor(total / 60)}:${pad2(total % 60)}`;
+  const { hours, minutes, seconds } = splitDuration(Math.ceil(Math.max(0, ms) / 1000) * 1000);
+  const base = `${pad2(minutes)}:${pad2(seconds)}`;
+  return hours > 0 ? `${pad2(hours)}:${base}` : base;
 }
 
-/** "1 minute 30 seconds" for screen readers. */
+/** "1 hour 1 minute 30 seconds" for screen readers (zero parts left out). */
 export function spokenDuration(ms: number): string {
-  const total = Math.max(0, Math.ceil(ms / 1000));
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  const parts = [
-    m ? `${m} minute${m === 1 ? '' : 's'}` : '',
-    s || !m ? `${s} second${s === 1 ? '' : 's'}` : '',
-  ];
-  return parts.filter(Boolean).join(' ');
-}
-
-export type CountdownInput = { ok: true; durationMs: number } | { ok: false; message: string };
-
-/**
- * Parses the custom countdown fields. Blank counts as zero; both fields take whole
- * numbers only (minutes 0–99, seconds 0–59), and the total must be at least 1 second.
- */
-export function parseCountdownInput(minutesText: string, secondsText: string): CountdownInput {
-  const read = (text: string) => (text.trim() === '' ? 0 : /^\d+$/.test(text.trim()) ? Number(text) : NaN);
-  const minutes = read(minutesText);
-  const seconds = read(secondsText);
-  if (Number.isNaN(minutes) || Number.isNaN(seconds)) {
-    return { ok: false, message: 'Use whole numbers only.' };
-  }
-  if (minutes > 99 || seconds > 59) {
-    return { ok: false, message: 'Up to 99 minutes and 59 seconds.' };
-  }
-  const durationMs = (minutes * 60 + seconds) * 1000;
-  if (!isValidCountdownMs(durationMs)) return { ok: false, message: 'Set at least 1 second.' };
-  return { ok: true, durationMs };
+  const { hours, minutes, seconds } = splitDuration(Math.ceil(Math.max(0, ms) / 1000) * 1000);
+  const unit = (n: number, word: string) => (n ? `${n} ${word}${n === 1 ? '' : 's'}` : '');
+  const parts = [unit(hours, 'hour'), unit(minutes, 'minute'), unit(seconds, 'second')].filter(Boolean);
+  return parts.length ? parts.join(' ') : '0 seconds';
 }
 
 // ── Background alert and persistence ───────────────────────────────────────

@@ -6,6 +6,7 @@ import { usePersistedState } from '@/hooks/usePersistedState';
 import {
   countdownAlertAt,
   countdownDone,
+  countdownProgress,
   countdownRemaining,
   newCountdown,
   pauseCountdown,
@@ -16,8 +17,8 @@ import {
 } from '@/lib/clock';
 import { syncCountdownAlert } from '@/notifications/countdown';
 
-/** Whole seconds are shown; refresh a few times a second so changes land on time. */
-const TICK_MS = 200;
+/** Ten refreshes a second: whole seconds land on time and the progress ring moves smoothly. */
+const TICK_MS = 100;
 
 /** A finish counts as "just now" (worth a vibration) within this window. */
 const JUST_FINISHED_MS = 2_000;
@@ -65,6 +66,8 @@ export function useCountdown(initialMs: number) {
     status: done ? ('done' as const) : cd.status,
     durationMs: cd.durationMs,
     remainingMs: countdownRemaining(cd, now),
+    /** 1 (full) to 0 (finished), for the progress ring. */
+    progress: countdownProgress(cd, now),
     setDuration: (ms: number) => setCd((c) => setCountdownDuration(c, ms)),
     start: () => setCd((c) => startCountdown(c, Date.now())),
     pause: () => setCd((c) => pauseCountdown(c, Date.now())),
