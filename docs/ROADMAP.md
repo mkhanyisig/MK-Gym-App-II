@@ -40,7 +40,7 @@ Workflow: **Backlog → Refinement → Ready → In Progress → Review → Done
 | P0       | [#27](https://github.com/mkhanyisig/MK-Gym-App-II/issues/27) Research: workout data lifecycle and integrity                | Decides source of truth, session lifecycle, atomic writes and history integrity **before** #18 and #19 start.       |
 | P1       | [#28](https://github.com/mkhanyisig/MK-Gym-App-II/issues/28) Offline data export, import and recovery                      | Protects on-device history from reinstalls and device loss. The contract comes first; implementation is a later PR. |
 | P1       | [#18](https://github.com/mkhanyisig/MK-Gym-App-II/issues/18), [#19](https://github.com/mkhanyisig/MK-Gym-App-II/issues/19) | First two workout steps, once #27's decisions are approved.                                                         |
-| P2       | [#25](https://github.com/mkhanyisig/MK-Gym-App-II/issues/25) Multiple daily weigh-ins with daily averages                  | Independent weight-tracking improvement; shares the next migration number with #18.                                 |
+| P1       | [#25](https://github.com/mkhanyisig/MK-Gym-App-II/issues/25) Multiple daily weigh-ins with daily averages                  | Independent weight-tracking improvement; shares the next migration number with #18, so agree the migration order.   |
 | P3       | [#29](https://github.com/mkhanyisig/MK-Gym-App-II/issues/29) Research: personalized insights and recommendation strategy   | Rule-based, explainable recommendations; research only.                                                             |
 
 ## Now: Workout journal MVP
