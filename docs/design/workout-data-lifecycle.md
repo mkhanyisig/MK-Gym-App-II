@@ -4,7 +4,7 @@ Design note for [#27](https://github.com/mkhanyisig/MK-Gym-App-II/issues/27). It
 
 **Scope:** what #18 and #19 need. Routines (#20), rest timers (#21), cardio (#22), insights (#23), export (#28), cloud sync and analytics are out of scope.
 
-**Status:** all decisions are approved by the owner (2026-11-28): D1–D8, plus follow-ups Q1 and Q2 (end of this note).
+**Status:** all decisions are approved by the owner (2026-11-28): D1–D8, follow-ups Q1 and Q2, and implementation decisions for #18 and #19 (end of this note).
 
 ## Approved decisions
 
@@ -22,7 +22,7 @@ Design note for [#27](https://github.com/mkhanyisig/MK-Gym-App-II/issues/27). It
 ## Records (draft shape; #18 finalizes it)
 
 - **`exercises`:** `id` (UUID), `name`, `muscle_group`, `equipment`, `kind` (strength/cardio), `is_custom`, `archived_at`.
-- **`sessions`:** `id`, `status` (`active` | `interrupted` | `finished`), `started_at`, `ended_at`, `last_activity_at`, `paused_at` (null when running), `paused_ms_total`, `location`, `focus_areas`.
+- **`sessions`:** `id`, `status` (`active` | `interrupted` | `finished`), `started_at`, `ended_at`, `last_activity_at`, `paused_at` (null when running), `paused_ms_total`, `location`, `focus_areas` (JSON text; see #18 decision below).
 - **`session_exercises`:** `id`, `session_id` (FK, cascade), `exercise_id` (FK, restrict), `planned_exercise_id` (FK, null until #20), `origin` (`added` in #19), `position`, `skipped`.
 - **`sets`:** `id`, `session_exercise_id` (FK, cascade), `position`, `reps`, `weight_kg` (full precision), `completed_at`, `skipped`, `target_reps` / `target_weight_kg` (null until #20).
 - **Time formats:** instants are UTC ISO 8601 strings, as in `weight_entries`. `paused_ms_total` is an integer in milliseconds.
@@ -67,7 +67,7 @@ Tuesday at the gym, focus **Arms + Back**. IDs are shortened UUIDs, `s1` is the 
            finished   (view and delete only in #19, D5)
 ```
 
-`finish` and `discard` are available from `active` (running or paused) and from `interrupted`.
+`finish` and `discard` are available from `active` (running or paused) and from `interrupted`. **Finish on a session with no completed sets** asks first, then discards it (see the #19 decision below); Cancel keeps it open.
 
 ## Validated details
 
@@ -111,6 +111,7 @@ Tuesday at the gym, focus **Arms + Back**. IDs are shortened UUIDs, `s1` is the 
 | Long cardio block (60+ min, logged at end) | May be flagged `interrupted`. Resume continues, with the gap excluded (Q2), or pause during long blocks. Accepted trade-off. |
 | New build installed mid-session            | The data persists. The migration must carry open-session rows through unchanged (tested).                                    |
 | Migration fails partway                    | The transaction rolls back to the previous version; the existing database error screen appears; no data changed.             |
+| Finish tapped with no completed sets       | A confirmation explains the empty session will be discarded. Confirm deletes it; Cancel keeps it open. Never silent.         |
 | Device clock moves backwards               | Durations are clamped at ≥ 0. Order is still kept by the insertion sequence.                                                 |
 | Deleting an exercise used in history       | Blocked by the foreign key (restrict); the UI offers Archive.                                                                |
 
@@ -120,3 +121,9 @@ Found while validating the pause and last-activity rules; the owner approved bot
 
 - **Q1. A paused session when the app is relaunched:** it **stays paused** and is not flagged `interrupted`. A banner offers Resume or Finish. _Alternative considered:_ flag it `interrupted` like any open session; rejected because it contradicts "paused sessions are never auto-flagged".
 - **Q2. Resuming an interrupted session:** the outage gap counts as **paused time** (`paused_ms_total += resume − last_activity_at`). Durations then match whether you Resume or Finish. _Alternative considered:_ count the gap as workout time; rejected because it inflates durations by the outage.
+
+## Implementation decisions for #18 and #19 (approved 2026-11-28)
+
+- **#18, focus areas:** stored as a **JSON text column** on `sessions` (e.g. `["arms","back"]`). Application code uses a typed representation, a union of the known focus areas, and values are **validated at the persistence boundary**: the repository rejects unknown or duplicate values. _Trade-off:_ simple, with no extra table or joins, but SQL can't filter or aggregate by focus efficiently. Revisit a join table if future filtering or analytics needs it.
+- **#19, empty sessions:** a session with **no completed sets** is never saved as a finished workout. Tapping Finish shows a confirmation explaining that the empty session will be **discarded**. Confirm deletes it (as Discard does); **Cancel keeps it open**. It's never deleted silently.
+- **#19, Begin Session:** Home's Begin Session opens the **new session-start screen** (focus and Gym/Home), not the Clock. The Clock tab stays independently accessible and reusable during workouts.
