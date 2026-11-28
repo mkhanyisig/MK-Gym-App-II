@@ -41,6 +41,8 @@ npx expo start --go   # scan the QR code with Expo Go
 npm run web           # or run it in the browser
 ```
 
+To install it on an iPhone as a standalone app (Xcode and a free Apple ID), see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+
 Development checks:
 
 ```sh
