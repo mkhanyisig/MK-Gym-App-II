@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -6,6 +7,7 @@ import { ClockButton } from '@/components/ClockButton';
 import { ClockFace } from '@/components/ClockFace';
 import { DurationPicker } from '@/components/DurationPicker';
 import { ProgressRing } from '@/components/ProgressRing';
+import { useAlertAudibility } from '@/hooks/useAlertAudibility';
 import type { useCountdown } from '@/hooks/useCountdown';
 import {
   type DurationParts,
@@ -144,6 +146,10 @@ function RunningTimer({ countdown }: Props) {
   // As large as fits the width (and short screens), capped for tablets and wide windows.
   const ringSize = Math.round(Math.min(width - spacing.md * 2 - spacing.lg, height * 0.34, 320));
   const statusText = done ? 'Time’s up' : paused ? 'Paused' : '';
+  // On a phone where "Time's up" would be silent (or not shown), say so and link to the fix.
+  const { audibility } = useAlertAudibility();
+  const silent =
+    !done && audibility != null && audibility.permission !== 'unsupported' && !audibility.audible;
 
   return (
     <View style={styles.view}>
@@ -214,6 +220,19 @@ function RunningTimer({ countdown }: Props) {
           />
         )}
       </View>
+
+      {silent ? (
+        <Pressable
+          onPress={() => router.push('/notifications')}
+          accessibilityRole="link"
+          accessibilityLabel="Time’s up will be silent. Open notification settings."
+          hitSlop={8}
+        >
+          <AppText variant="small" tone="highlight" style={styles.center}>
+            “Time’s up” will be silent when the app is closed · Fix →
+          </AppText>
+        </Pressable>
+      ) : null}
     </View>
   );
 }

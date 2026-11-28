@@ -1,6 +1,16 @@
 import * as Notifications from 'expo-notifications';
-import { AndroidImportance, IosAuthorizationStatus } from 'expo-notifications';
+import { AndroidImportance } from 'expo-notifications';
 import { Platform } from 'react-native';
+
+import {
+  type AlertAudibility,
+  describeAlerts,
+  type NotificationPermission,
+  toPermission,
+  UNSUPPORTED_AUDIBILITY,
+} from '@/lib/notificationPermission';
+
+export type { AlertAudibility, NotificationPermission };
 
 /**
  * Shared expo-notifications setup: how alerts show while the app is open, the Android
@@ -14,14 +24,14 @@ export const notificationsSupported = Platform.OS !== 'web';
 export const NotificationKind = {
   weighInReminder: 'weigh-in-reminder',
   countdownDone: 'countdown-done',
+  /** The static "Countdown running / paused" lock-screen note (not a live, ticking widget). */
+  countdownStatus: 'countdown-status',
 } as const;
 
 export const ChannelId = {
   weighInReminders: 'weigh-in-reminders',
   countdown: 'countdown',
 } as const;
-
-export type NotificationPermission = 'granted' | 'undetermined' | 'denied' | 'unsupported';
 
 let configured: Promise<void> | null = null;
 
@@ -30,12 +40,15 @@ export function configureNotifications(): Promise<void> {
   configured ??= (async () => {
     Notifications.setNotificationHandler({
       handleNotification: async (notification) => {
-        // A countdown that finishes while the app is open is already shown on screen
-        // (and vibrates), so its alert is only for when the app is in the background.
-        const show = notification.request.content.data?.kind !== NotificationKind.countdownDone;
+        // While the app is open the Clock already shows the countdown (and vibrates at
+        // zero), so countdown notifications don't pop up as banners then. The status note
+        // still goes into the list so it's on the lock screen once you leave.
+        const kind = notification.request.content.data?.kind;
+        const countdown =
+          kind === NotificationKind.countdownDone || kind === NotificationKind.countdownStatus;
         return {
-          shouldShowBanner: show,
-          shouldShowList: show,
+          shouldShowBanner: !countdown,
+          shouldShowList: kind !== NotificationKind.countdownDone,
           shouldPlaySound: false,
           shouldSetBadge: false,
         };
@@ -57,32 +70,38 @@ export function configureNotifications(): Promise<void> {
   return configured;
 }
 
-function toPermission(response: Notifications.NotificationPermissionsStatus): NotificationPermission {
-  const provisional = response.ios?.status === IosAuthorizationStatus.PROVISIONAL;
-  if (response.granted || provisional) return 'granted';
-  return response.canAskAgain ? 'undetermined' : 'denied';
-}
-
 /** Current permission, without prompting. */
 export async function getNotificationPermission(): Promise<NotificationPermission> {
   if (!notificationsSupported) return 'unsupported';
   return toPermission(await Notifications.getPermissionsAsync());
 }
 
-/** Shows the OS permission prompt if it's still allowed to; otherwise returns the current state. */
+/** Whether a countdown's "Time's up" will be an alert with sound, and if not, why. */
+export async function getAlertAudibility(): Promise<AlertAudibility> {
+  if (!notificationsSupported) return UNSUPPORTED_AUDIBILITY;
+  return describeAlerts(await Notifications.getPermissionsAsync());
+}
+
+/**
+ * Shows the OS permission prompt if it's still allowed to: when never asked, or when iOS
+ * only granted provisional (quiet) delivery, which it lets an app upgrade by asking for
+ * full alert, badge and sound permission. Otherwise returns the current state without
+ * prompting; a denied or muted app can only be changed in the phone's Settings.
+ */
 export async function requestNotificationPermission(): Promise<NotificationPermission> {
   if (!notificationsSupported) return 'unsupported';
   await configureNotifications();
-  const current = await getNotificationPermission();
-  if (current !== 'undetermined') return current;
+  const current = await Notifications.getPermissionsAsync();
+  if (!describeAlerts(current).canPrompt) return toPermission(current);
   return toPermission(await Notifications.requestPermissionsAsync());
 }
 
-/** Calls `onOpen` when the user taps a notification of `kind`, including one that launched the app. */
-export function onNotificationOpened(kind: string, onOpen: () => void): () => void {
+/** Calls `onOpen` when the user taps a notification of `kind` (or any of several), including one that launched the app. */
+export function onNotificationOpened(kind: string | string[], onOpen: () => void): () => void {
   if (!notificationsSupported) return () => {};
+  const kinds = Array.isArray(kind) ? kind : [kind];
   const isOurs = (response: Notifications.NotificationResponse | null) =>
-    response?.notification.request.content.data?.kind === kind;
+    kinds.includes(String(response?.notification.request.content.data?.kind));
 
   void Notifications.getLastNotificationResponseAsync().then((response) => {
     if (isOurs(response)) onOpen();
