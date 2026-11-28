@@ -5,7 +5,7 @@ import { useEffect, useMemo } from 'react';
 
 import { ReminderSync } from '@/components/ReminderSync';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
-import { onCountdownAlertOpened } from '@/notifications/countdown';
+import { clearStaleCountdownStatus, onCountdownNotificationOpened } from '@/notifications/countdown';
 import { AppThemeProvider, fontAssets, useAppTheme } from '@/theme';
 
 export default function RootLayout() {
@@ -27,8 +27,14 @@ export default function RootLayout() {
 function ThemedNavigation() {
   const { scheme, colors } = useAppTheme();
 
-  // Tapping a countdown's "Time's up" notification opens the Clock.
-  useEffect(() => onCountdownAlertOpened(() => router.navigate('/clock')), []);
+  // Tapping a countdown notification (status note or "Time's up") opens the Clock.
+  useEffect(() => onCountdownNotificationOpened(() => router.navigate('/clock')), []);
+  // Remove a "Countdown running" note left over from a countdown that ended while closed.
+  useEffect(() => {
+    clearStaleCountdownStatus().catch((error: unknown) => {
+      console.warn('Could not tidy countdown notifications', error);
+    });
+  }, []);
 
   // Navigation chrome (headers, tab bar, modal) reads these colors.
   const navigationTheme = useMemo<Theme>(() => {

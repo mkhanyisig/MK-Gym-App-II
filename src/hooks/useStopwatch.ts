@@ -5,6 +5,7 @@ import {
   newStopwatch,
   pauseStopwatch,
   resetStopwatch,
+  STOPWATCH_STORAGE_KEY,
   restoreStopwatch,
   startStopwatch,
   stopwatchElapsed,
@@ -19,7 +20,7 @@ const TICK_MS = 50;
  * the device, so it survives the app being closed (and keeps counting if it was running).
  */
 export function useStopwatch() {
-  const [sw, setSw] = usePersistedState('clock.stopwatch.v1', newStopwatch, restoreStopwatch);
+  const [sw, setSw] = usePersistedState(STOPWATCH_STORAGE_KEY, newStopwatch, restoreStopwatch);
   const now = useClockNow(sw.status === 'running', TICK_MS);
 
   return {

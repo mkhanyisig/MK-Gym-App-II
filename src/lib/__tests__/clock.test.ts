@@ -1,5 +1,4 @@
 import {
-  countdownAlertAt,
   countdownDone,
   countdownProgress,
   countdownRemaining,
@@ -234,21 +233,6 @@ describe('countdownRemaining with a stale clock', () => {
     const running = startCountdown(newCountdown(60_000), 10_000);
     // A display tick from before Start must not read as extra time.
     expect(countdownRemaining(running, 5_000)).toBe(60_000);
-  });
-});
-
-describe('countdownAlertAt', () => {
-  it('is the end time while running, and null otherwise', () => {
-    const idle = newCountdown(30_000);
-    expect(countdownAlertAt(idle, 0)).toBeNull();
-    const running = startCountdown(idle, 1_000);
-    expect(countdownAlertAt(running, 2_000)).toBe(31_000);
-    expect(countdownAlertAt(pauseCountdown(running, 2_000), 2_000)).toBeNull();
-  });
-
-  it('is null once the end time has passed (no alert in the past)', () => {
-    const running = startCountdown(newCountdown(30_000), 0);
-    expect(countdownAlertAt(running, 30_000)).toBeNull();
   });
 });
 

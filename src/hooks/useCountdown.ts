@@ -4,7 +4,7 @@ import { AccessibilityInfo, Vibration } from 'react-native';
 import { useClockNow } from '@/hooks/useClockNow';
 import { usePersistedState } from '@/hooks/usePersistedState';
 import {
-  countdownAlertAt,
+  COUNTDOWN_STORAGE_KEY,
   countdownDone,
   countdownProgress,
   countdownRemaining,
@@ -15,7 +15,8 @@ import {
   setCountdownDuration,
   startCountdown,
 } from '@/lib/clock';
-import { syncCountdownAlert } from '@/notifications/countdown';
+import { formatTimeOfDay, planCountdownNotifications } from '@/lib/countdownNotifications';
+import { syncCountdownNotifications } from '@/notifications/countdown';
 
 /** Ten refreshes a second: whole seconds land on time and the progress ring moves smoothly. */
 const TICK_MS = 100;
@@ -32,7 +33,7 @@ const JUST_FINISHED_MS = 2_000;
  */
 export function useCountdown(initialMs: number) {
   const [cd, setCd] = usePersistedState(
-    'clock.countdown.v1',
+    COUNTDOWN_STORAGE_KEY,
     () => newCountdown(initialMs),
     restoreCountdown,
   );
@@ -54,13 +55,16 @@ export function useCountdown(initialMs: number) {
     if (!done) signalled.current = false;
   }, [done, endsAt]);
 
-  // Keep the background alert in step: scheduled while running, cancelled otherwise.
-  // `cd` only changes on Start, Pause, Reset, a new duration, or loading the saved state.
+  // Keep the phone's notifications in step: the lock-screen status note and the
+  // "Time's up" alert. `cd` changes on Start, Pause, Cancel, Restart, a new duration or
+  // loading the saved state; `done` flips when it reaches zero in the app.
   useEffect(() => {
-    syncCountdownAlert(countdownAlertAt(cd, Date.now())).catch((error: unknown) => {
-      console.warn('Could not update the countdown alert', error);
-    });
-  }, [cd]);
+    syncCountdownNotifications(planCountdownNotifications(cd, Date.now(), formatTimeOfDay)).catch(
+      (error: unknown) => {
+        console.warn('Could not update the countdown notifications', error);
+      },
+    );
+  }, [cd, done]);
 
   return {
     status: done ? ('done' as const) : cd.status,

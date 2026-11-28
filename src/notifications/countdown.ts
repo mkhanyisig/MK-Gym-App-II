@@ -1,5 +1,12 @@
 import * as Notifications from 'expo-notifications';
 
+import { COUNTDOWN_STORAGE_KEY, restoreCountdown } from '@/lib/clock';
+import {
+  type CountdownNotificationPlan,
+  formatTimeOfDay,
+  planCountdownNotifications,
+} from '@/lib/countdownNotifications';
+import { loadJson } from '@/lib/storage';
 import {
   ChannelId,
   configureNotifications,
@@ -10,48 +17,88 @@ import {
   requestNotificationPermission,
 } from '@/notifications/setup';
 
-/** One countdown at a time, so one fixed id: scheduling again replaces the previous alert. */
-const IDENTIFIER = 'countdown-done';
+/**
+ * Applies a CountdownNotificationPlan (src/lib/countdownNotifications.ts). One countdown
+ * exists at a time, so each notification has a fixed identifier.
+ */
+export const COUNTDOWN_ALERT_ID = 'countdown-done';
+export const COUNTDOWN_STATUS_ID = 'countdown-status';
 
-// Syncs run one at a time so a quick pause and resume can't leave a stale alert behind.
+// Syncs run one at a time, so quick Pause/Resume/Cancel taps can't interleave and leave
+// a stale or duplicate notification behind.
 let syncQueue: Promise<unknown> = Promise.resolve();
 
 /**
- * Schedules the "Time's up" alert for `alertAt` (a timestamp), replacing any earlier one,
- * or just cancels it when `alertAt` is null. The first time a countdown runs, this asks
- * for notification permission; without it, completion is shown only in the app.
+ * Makes the phone's countdown notifications match `plan`:
+ * - Always first removes the pending completion alert and the delivered status note, so
+ *   there is never more than one of each, whatever iOS does with repeated identifiers.
+ * - Removes an old delivered "Time's up" unless the countdown is sitting at "done".
+ * - Then posts the status note (silent, "passive": no sound and doesn't light the
+ *   screen) and schedules the completion alert (sound; "timeSensitive", which iOS may
+ *   let through a Focus mode only if the app has that capability and the user allows it).
+ * The first countdown start asks for notification permission, or to upgrade provisional
+ * (quiet) permission. Without permission nothing is posted; the Clock still works.
  */
-export function syncCountdownAlert(alertAt: number | null): Promise<void> {
+export function syncCountdownNotifications(plan: CountdownNotificationPlan): Promise<void> {
   if (!notificationsSupported) return Promise.resolve();
   const run = syncQueue.then(async () => {
-    await Notifications.cancelScheduledNotificationAsync(IDENTIFIER);
-    if (alertAt == null) return;
+    await Notifications.cancelScheduledNotificationAsync(COUNTDOWN_ALERT_ID);
+    await Notifications.dismissNotificationAsync(COUNTDOWN_STATUS_ID);
+    if (plan.phase !== 'done') await Notifications.dismissNotificationAsync(COUNTDOWN_ALERT_ID);
+    if (!plan.status && plan.alertAt == null) return;
+
     await configureNotifications();
-    const permission =
-      (await getNotificationPermission()) === 'undetermined'
-        ? await requestNotificationPermission()
-        : await getNotificationPermission();
-    if (permission !== 'granted' || alertAt <= Date.now()) return;
-    await Notifications.scheduleNotificationAsync({
-      identifier: IDENTIFIER,
-      content: {
-        title: 'Time’s up',
-        body: 'Your countdown has finished.',
-        sound: true,
-        data: { kind: NotificationKind.countdownDone, url: '/clock' },
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: new Date(alertAt),
-        channelId: ChannelId.countdown,
-      },
-    });
+    if (plan.alertAt != null) await requestNotificationPermission();
+    if ((await getNotificationPermission()) !== 'granted') return;
+
+    if (plan.status) {
+      await Notifications.scheduleNotificationAsync({
+        identifier: COUNTDOWN_STATUS_ID,
+        content: {
+          title: plan.status.title,
+          body: plan.status.body,
+          sound: false,
+          interruptionLevel: 'passive',
+          data: { kind: NotificationKind.countdownStatus, url: '/clock' },
+        },
+        trigger: null,
+      });
+    }
+    if (plan.alertAt != null && plan.alertAt > Date.now()) {
+      await Notifications.scheduleNotificationAsync({
+        identifier: COUNTDOWN_ALERT_ID,
+        content: {
+          title: 'Time’s up',
+          body: 'Your countdown has finished.',
+          sound: true,
+          interruptionLevel: 'timeSensitive',
+          data: { kind: NotificationKind.countdownDone, url: '/clock' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: new Date(plan.alertAt),
+          channelId: ChannelId.countdown,
+        },
+      });
+    }
   });
   syncQueue = run.catch(() => undefined);
   return run;
 }
 
-/** Calls `onOpen` when the user taps the countdown alert, including one that launched the app. */
-export function onCountdownAlertOpened(onOpen: () => void): () => void {
-  return onNotificationOpened(NotificationKind.countdownDone, onOpen);
+/**
+ * On launch, removes a status note left from a countdown that finished (or was reset)
+ * while the app was closed. The Clock tab only mounts when visited, so this runs from
+ * the root layout. A running or paused countdown is left for the Clock to manage.
+ */
+export async function clearStaleCountdownStatus(): Promise<void> {
+  if (!notificationsSupported) return;
+  const saved = restoreCountdown(await loadJson<unknown>(COUNTDOWN_STORAGE_KEY));
+  const phase = saved ? planCountdownNotifications(saved, Date.now(), formatTimeOfDay).phase : 'none';
+  if (phase === 'none' || phase === 'done') await Notifications.dismissNotificationAsync(COUNTDOWN_STATUS_ID);
+}
+
+/** Calls `onOpen` when the user taps a countdown notification, including one that launched the app. */
+export function onCountdownNotificationOpened(onOpen: () => void): () => void {
+  return onNotificationOpened([NotificationKind.countdownDone, NotificationKind.countdownStatus], onOpen);
 }

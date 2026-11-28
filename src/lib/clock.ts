@@ -201,10 +201,9 @@ export function spokenDuration(ms: number): string {
 
 // ── Background alert and persistence ───────────────────────────────────────
 
-/** When a background "Time's up" alert should fire: the end time of a running countdown that hasn't ended. */
-export function countdownAlertAt(cd: Countdown, now: number): number | null {
-  return cd.status === 'running' && cd.endsAt != null && cd.endsAt > now ? cd.endsAt : null;
-}
+/** Where the clocks are saved on the device (see usePersistedState). */
+export const STOPWATCH_STORAGE_KEY = 'clock.stopwatch.v1';
+export const COUNTDOWN_STORAGE_KEY = 'clock.countdown.v1';
 
 const isStatus = (v: unknown): v is ClockStatus => v === 'idle' || v === 'running' || v === 'paused';
 const isTime = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0;
