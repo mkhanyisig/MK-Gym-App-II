@@ -20,6 +20,7 @@ import {
   setCountdownDuration,
   splitDuration,
   spokenDuration,
+  spokenElapsed,
   startCountdown,
   startStopwatch,
   stopwatchElapsed,
@@ -143,8 +144,12 @@ describe('display', () => {
   it.each([
     [0, '00:00.00'],
     [1_234, '00:01.23'],
+    [59_999, '00:59.99'], // rounds down: never shows a unit before it has passed
     [61_999, '01:01.99'],
-    [3_723_450, '1:02:03.45'],
+    [3_599_999, '59:59.99'], // the last moment before the hour
+    [3_600_000, '01:00:00'], // from an hour: hh:mm:ss
+    [3_723_450, '01:02:03'],
+    [100 * 3_600_000, '100:00:00'],
   ])('formatStopwatch(%p) → %s', (ms, text) => {
     expect(formatStopwatch(ms)).toBe(text);
   });
@@ -159,6 +164,11 @@ describe('display', () => {
     [MAX_COUNTDOWN_MS, '23:59:59'],
   ])('formatCountdown(%p) → %s', (ms, text) => {
     expect(formatCountdown(ms)).toBe(text);
+  });
+
+  it('speaks elapsed time in whole seconds', () => {
+    expect(spokenElapsed(31_420)).toBe('31 seconds');
+    expect(spokenElapsed(3_661_900)).toBe('1 hour 1 minute 1 second');
   });
 
   it('speaks durations naturally', () => {

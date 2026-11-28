@@ -161,16 +161,25 @@ export const joinDuration = ({ hours, minutes, seconds }: DurationParts): number
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-/** Stopwatch time: "mm:ss.cc", or "h:mm:ss.cc" from an hour (hundredths, rounded down). */
+export const HOUR_MS = 3_600_000;
+
+/**
+ * Stopwatch time, always three units:
+ * - under an hour: "mm:ss.cc" (minutes, seconds, hundredths), e.g. "00:31.42";
+ * - from an hour: "hh:mm:ss", e.g. "01:02:03".
+ * The dot marks hundredths, so "00:31.42" can't be mistaken for 31 minutes 42 seconds.
+ * Every unit rounds down: a second (or hundredth) only counts once it has passed.
+ */
 export function formatStopwatch(ms: number): string {
-  const total = Math.max(0, Math.floor(ms / 10));
-  const centis = total % 100;
-  const seconds = Math.floor(total / 100) % 60;
-  const minutes = Math.floor(total / 6000) % 60;
-  const hours = Math.floor(total / 360000);
-  const base = `${pad2(minutes)}:${pad2(seconds)}.${pad2(centis)}`;
-  return hours > 0 ? `${hours}:${base}` : base;
+  const safe = Math.max(0, ms);
+  const { hours, minutes, seconds } = splitDuration(Math.floor(safe / 1000) * 1000);
+  if (safe >= HOUR_MS) return `${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}`;
+  return `${pad2(minutes)}:${pad2(seconds)}.${pad2(Math.floor(safe / 10) % 100)}`;
 }
+
+/** Elapsed time for screen readers, in whole seconds (hundredths would be noise). */
+export const spokenElapsed = (ms: number): string =>
+  spokenDuration(Math.floor(Math.max(0, ms) / 1000) * 1000);
 
 /**
  * Countdown time: "mm:ss", or "hh:mm:ss" from an hour (like the stopwatch). Rounds up, so it shows 00:01 until

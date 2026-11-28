@@ -11,7 +11,7 @@ import {
   stopwatchLaps,
 } from '@/lib/clock';
 
-/** Hundredths are shown, so refresh about 20 times a second while running. */
+/** Hundredths show for the first hour, so refresh about 20 times a second while running. */
 const TICK_MS = 50;
 
 /**

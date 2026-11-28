@@ -3,10 +3,11 @@ import { FlatList, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { ClockButton } from '@/components/ClockButton';
 import { ClockFace } from '@/components/ClockFace';
+import { FixedDigits } from '@/components/FixedDigits';
 import type { useStopwatch } from '@/hooks/useStopwatch';
 import { confirm } from '@/lib/confirm';
-import { formatStopwatch, spokenDuration } from '@/lib/clock';
-import { spacing, type ThemeColors, useThemedStyles } from '@/theme';
+import { formatStopwatch, spokenElapsed } from '@/lib/clock';
+import { spacing, textVariants, type ThemeColors, useThemedStyles } from '@/theme';
 
 type Props = { stopwatch: ReturnType<typeof useStopwatch> };
 
@@ -38,7 +39,7 @@ export function StopwatchPanel({ stopwatch }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.faceArea}>
-        <ClockFace text={formatStopwatch(elapsedMs)} accessibilityLabel={spokenDuration(elapsedMs)} />
+        <ClockFace text={formatStopwatch(elapsedMs)} accessibilityLabel={spokenElapsed(elapsedMs)} />
         <AppText variant="label" tone="muted">
           {running ? 'Running' : paused ? 'Paused' : 'Ready'}
         </AppText>
@@ -84,14 +85,12 @@ export function StopwatchPanel({ stopwatch }: Props) {
           <View
             style={styles.lapRow}
             accessible
-            accessibilityLabel={`Lap ${item.number}, ${spokenDuration(item.durationMs)}`}
+            accessibilityLabel={`Lap ${item.number}, ${spokenElapsed(item.durationMs)}`}
           >
             <AppText variant="body" tone="muted">
               Lap {item.number}
             </AppText>
-            <AppText variant="body" style={styles.lapTime}>
-              {formatStopwatch(item.durationMs)}
-            </AppText>
+            <FixedDigits text={formatStopwatch(item.durationMs)} fontSize={16} style={styles.lapTime} />
           </View>
         )}
       />
@@ -112,5 +111,5 @@ const makeStyles = (c: ThemeColors) =>
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: c.border,
     },
-    lapTime: { fontVariant: ['tabular-nums'] },
+    lapTime: { ...textVariants.body, color: c.text },
   });
