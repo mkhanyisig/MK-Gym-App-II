@@ -40,16 +40,19 @@ export function configureNotifications(): Promise<void> {
   configured ??= (async () => {
     Notifications.setNotificationHandler({
       handleNotification: async (notification) => {
-        // While the app is open the Clock already shows the countdown (and vibrates at
-        // zero), so countdown notifications don't pop up as banners then. The status note
-        // still goes into the list so it's on the lock screen once you leave.
+        // While the app is open the Clock already shows the countdown, so countdown
+        // notifications don't pop up as banners then. The status note still goes into
+        // the list so it's on the lock screen once you leave. "Time's up" plays its sound
+        // (only): the notification is the one source of the completion sound, open or
+        // closed, so it's never played twice and iOS applies Silent, Focus and the app's
+        // Sounds setting to it.
         const kind = notification.request.content.data?.kind;
-        const countdown =
-          kind === NotificationKind.countdownDone || kind === NotificationKind.countdownStatus;
+        const done = kind === NotificationKind.countdownDone;
+        const countdown = done || kind === NotificationKind.countdownStatus;
         return {
           shouldShowBanner: !countdown,
-          shouldShowList: kind !== NotificationKind.countdownDone,
-          shouldPlaySound: false,
+          shouldShowList: !done,
+          shouldPlaySound: done,
           shouldSetBadge: false,
         };
       },

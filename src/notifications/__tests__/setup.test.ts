@@ -35,10 +35,12 @@ const present = async (kind: string) =>
 describe('foreground presentation (app open)', () => {
   beforeAll(() => configureNotifications());
 
-  it('weigh-in reminders still show as banners', async () => {
-    expect(await present(NotificationKind.weighInReminder)).toMatchObject({
+  it('weigh-in reminders still show as banners (unchanged: no sound while open)', async () => {
+    expect(await present(NotificationKind.weighInReminder)).toEqual({
       shouldShowBanner: true,
       shouldShowList: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
     });
   });
 
@@ -49,11 +51,17 @@ describe('foreground presentation (app open)', () => {
     });
   });
 
-  it("Time's up doesn't pop up while the Clock already shows it", async () => {
-    expect(await present(NotificationKind.countdownDone)).toMatchObject({
+  it("Time's up plays its sound but doesn't pop up while the Clock already shows it", async () => {
+    expect(await present(NotificationKind.countdownDone)).toEqual({
       shouldShowBanner: false,
       shouldShowList: false,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
     });
+  });
+
+  it('the status note stays silent', async () => {
+    expect(await present(NotificationKind.countdownStatus)).toMatchObject({ shouldPlaySound: false });
   });
 });
 

@@ -139,6 +139,29 @@ describe('countdown notifications through a whole session', () => {
     expect(mockCenter.pending.size).toBe(1);
   });
 
+  it('reaching zero in the app before iOS delivers keeps the alert, so its sound still plays', async () => {
+    let cd = startCountdown(newCountdown(30_000), now);
+    await sync(cd);
+    // The app notices zero (it ticks every 100 ms) before iOS has delivered the alert.
+    now = 30_050;
+    await sync(cd); // done
+    expect(alertDate()).toBe(30_000); // still pending: iOS will deliver it with sound
+    expect(status()).toBeUndefined(); // the running note is gone
+    expect(mockCenter.pending.size).toBe(1);
+
+    // Cancel right after (alert still pending): nothing left to fire.
+    await sync(resetCountdown(cd));
+    expect(mockCenter.pending.size + mockCenter.delivered.size).toBe(0);
+
+    // Restart instead: exactly one fresh alert.
+    now = 40_000;
+    cd = startCountdown(resetCountdown(startCountdown(newCountdown(30_000), 0)), now);
+    await sync(cd);
+    expect([...mockCenter.pending.keys()]).toEqual([COUNTDOWN_ALERT_ID]);
+    expect(alertDate()).toBe(70_000);
+    expect(mockCenter.maxPending).toBe(1);
+  });
+
   it('rapid taps without waiting still end in one consistent state', async () => {
     const start = startCountdown(newCountdown(60_000), 0);
     const paused = pauseCountdown(start, 1_000);

@@ -30,9 +30,10 @@ let syncQueue: Promise<unknown> = Promise.resolve();
 
 /**
  * Makes the phone's countdown notifications match `plan`:
- * - Always first removes the pending completion alert and the delivered status note, so
- *   there is never more than one of each, whatever iOS does with repeated identifiers.
- * - Removes an old delivered "Time's up" unless the countdown is sitting at "done".
+ * - First removes the delivered status note and, unless the countdown is at "done", the
+ *   completion alert (pending or delivered), so there is never more than one of each,
+ *   whatever iOS does with repeated identifiers. At "done" the alert is kept so it can
+ *   still fire and play its sound.
  * - Then posts the status note (silent, "passive": no sound and doesn't light the
  *   screen) and schedules the completion alert (sound; "timeSensitive", which iOS may
  *   let through a Focus mode only if the app has that capability and the user allows it).
@@ -42,9 +43,14 @@ let syncQueue: Promise<unknown> = Promise.resolve();
 export function syncCountdownNotifications(plan: CountdownNotificationPlan): Promise<void> {
   if (!notificationsSupported) return Promise.resolve();
   const run = syncQueue.then(async () => {
-    await Notifications.cancelScheduledNotificationAsync(COUNTDOWN_ALERT_ID);
+    // At "done" the alert is left alone: the app can notice zero a moment before iOS
+    // delivers the alert, and cancelling it then would swallow the "Time's up" sound.
+    // Cancel and Restart clear it (pending or delivered) as usual.
+    if (plan.phase !== 'done') {
+      await Notifications.cancelScheduledNotificationAsync(COUNTDOWN_ALERT_ID);
+      await Notifications.dismissNotificationAsync(COUNTDOWN_ALERT_ID);
+    }
     await Notifications.dismissNotificationAsync(COUNTDOWN_STATUS_ID);
-    if (plan.phase !== 'done') await Notifications.dismissNotificationAsync(COUNTDOWN_ALERT_ID);
     if (!plan.status && plan.alertAt == null) return;
 
     await configureNotifications();
