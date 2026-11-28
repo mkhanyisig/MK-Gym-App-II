@@ -32,8 +32,29 @@ If signing fails, open `ios/*.xcworkspace` in Xcode, go to the **MyForm** target
 
 ## Everyday workflow
 
-- **Developing (feature branch):** run `npm run start:dev` and open **My Form Dev** on the iPhone (same Wi-Fi). Changes reload instantly. Rebuild with `npm run ios:dev` only when native modules or app config change, or after it expires.
-- **Releasing to yourself:** merge the PR, check out `main`, and run `npm run ios:release`. It installs over **My Form** and keeps its data.
+### Rebuild My Form (Release) from `main`
+
+```sh
+git switch main && git pull
+npm install            # also reapplies the dependency patch
+npm run ios:release    # iPhone connected and unlocked; pick it when asked
+```
+
+The Release build **bundles the JavaScript into the app**. Once it's installed, My Form runs on its own: no USB cable, no Metro, and no Mac needed. The cable is only for installing.
+
+### Test a feature branch with My Form Dev
+
+```sh
+git switch <feature-branch> && npm install
+npm run ios:dev        # once, and again when native modules or app config change
+npm run start:dev      # each session; open My Form Dev on the iPhone (same Wi-Fi as the Mac)
+```
+
+Code changes reload instantly in My Form Dev, which keeps its own data, separate from My Form.
+
+### Install an updated build without losing data
+
+Run the **same** script for the same app (`ios:release` for My Form, `ios:dev` for My Form Dev). The new build installs **over** the existing app, and its SQLite and AsyncStorage data are kept. **Don't delete the app first.**
 
 Both build scripts regenerate the gitignored `ios/` folder with `expo prebuild --clean`, so the two identities never mix. Expo may ask to confirm if you have uncommitted changes; build from a clean tree when you can.
 
@@ -55,6 +76,19 @@ The following delete or orphan the app's data:
 
 Before anything risky, make an encrypted iPhone backup in Finder, which includes app data. Data entered in **Expo Go** stays in Expo Go; it doesn't move to these apps.
 
+## Troubleshooting
+
+- **App won't open after about a week ("no longer available"):** free provisioning has expired. Your data is still on the phone. Connect the iPhone, unlock it, and rerun the same build script; it re-signs and installs over the app. If Xcode reports an expired or missing profile, open **Xcode › Settings › Accounts**, check that your Apple ID is still signed in, then rerun.
+- **Repeated keychain prompts, or `errSecInternalComponent` in "[CP] Embed Pods Frameworks":** `codesign` asks to use your signing key once per framework, and the stacked prompts can look frozen. Clicking **Deny** fails the build. Authorize it once, with a single signing run in **Terminal.app**:
+  ```sh
+  cp /usr/bin/true /tmp/sign-test
+  codesign --force --sign "Apple Development" /tmp/sign-test   # enter your login keychain password, click Always Allow
+  rm /tmp/sign-test
+  ```
+  Then rerun the build. If several Apple Development identities exist, pass the one from `security find-identity -v -p codesigning` (its SHA-1) instead of the name. Don't delete or regenerate certificates for this. If the prompt still misbehaves, `security set-key-partition-list -S apple-tool:,apple:,teamid:59GAB85EFG -s -l "<private key label>" ~/Library/Keychains/login.keychain-db` grants the same access for that one key. Always pass `-l` (without it, every key in the keychain changes), and leave out `-k` so you're asked for the password.
+- **"Untrusted Developer":** go to **Settings › General › VPN & Device Management**, tap your Apple Development profile, and tap **Trust**.
+- **iPhone not offered as a destination:** unlock it, confirm **Trust This Computer**, check that **Developer Mode** is on, and wait for **Xcode › Window › Devices and Simulators** to finish preparing it.
+
 ## Dependency patch: Xcode 26.2+ build fix (temporary)
 
 Expo SDK 58's `expo-modules-jsi` doesn't compile with Xcode 26.2 or newer (Swift 6.2). The error is `JavaScriptObject.swift:946: sending 'slot' risks causing data races`. Upstream: [expo/expo#52754](https://github.com/expo/expo/issues/52754), with a proposed fix in [expo/expo#54073](https://github.com/expo/expo/pull/54073).
@@ -65,7 +99,7 @@ Until Expo releases the fix, `patches/expo-modules-jsi+58.0.24.patch` applies th
 
 ## Testing checklist (native build)
 
-- **First launch:** icon, splash, fonts, light and dark themes, safe areas.
+- **First launch:** opens from the home screen with no Mac connected; icon, splash, fonts, light and dark themes, safe areas.
 - **Weight:** log, edit and delete a weigh-in; force-quit and reopen; check that Profile and BMI and the Home and Form values agree.
 - **Clock:**
   - the stopwatch and laps stay correct after locking the phone and after force-quitting
