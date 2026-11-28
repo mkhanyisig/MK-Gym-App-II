@@ -55,6 +55,14 @@ The following delete or orphan the app's data:
 
 Before anything risky, make an encrypted iPhone backup in Finder, which includes app data. Data entered in **Expo Go** stays in Expo Go; it doesn't move to these apps.
 
+## Dependency patch: Xcode 26.2+ build fix (temporary)
+
+Expo SDK 58's `expo-modules-jsi` doesn't compile with Xcode 26.2 or newer (Swift 6.2). The error is `JavaScriptObject.swift:946: sending 'slot' risks causing data races`. Upstream: [expo/expo#52754](https://github.com/expo/expo/issues/52754), with a proposed fix in [expo/expo#54073](https://github.com/expo/expo/pull/54073).
+
+Until Expo releases the fix, `patches/expo-modules-jsi+58.0.24.patch` applies that proposed one-line change: the pointer is wrapped in the module's own `UncheckedSendable`. [`patch-package`](https://github.com/ds300/patch-package) reapplies it on every `npm install`, through the `postinstall` script. It changes no app behaviour. Never edit `node_modules` or the generated `ios/` folder by hand.
+
+**When to remove it:** once an `expo-modules-jsi` release includes the fix (check the issue or the package changelog). To remove it, upgrade with `npx expo install --fix`, delete the patch file, and run `npm run ios:release` to confirm the build. If an upgrade makes `npm install` report that the patch failed to apply, check whether the new version already has the fix (then delete the patch) or regenerate it with `npx patch-package expo-modules-jsi`.
+
 ## Testing checklist (native build)
 
 - **First launch:** icon, splash, fonts, light and dark themes, safe areas.
