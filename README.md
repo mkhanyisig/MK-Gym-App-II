@@ -41,6 +41,8 @@ npx expo start --go   # scan the QR code with Expo Go
 npm run web           # or run it in the browser
 ```
 
+To install it on an iPhone as a standalone app, see [Running on iOS](#running-on-ios).
+
 Development checks:
 
 ```sh
@@ -49,6 +51,20 @@ npm run typecheck
 npm run lint          # also flags unformatted code (Prettier)
 npm run format        # format every file
 ```
+
+## Running on iOS
+
+My Form. can be installed on an iPhone with Xcode and a free Apple ID. Personal testing doesn't need a paid Apple Developer membership.
+
+| Command               | Purpose                                                                                                              |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `npm run ios:release` | Build and install the standalone **My Form** app. The JavaScript is bundled in, so it runs without Metro or the Mac. |
+| `npm run ios:dev`     | Build and install **My Form Dev**, for testing native features.                                                      |
+| `npm run start:dev`   | Start Metro for My Form Dev.                                                                                         |
+
+**My Form** and **My Form Dev** have separate bundle IDs and separate local storage, so development never touches everyday data. Free Apple ID provisioning expires after about 7 days; rerun the same build command to re-sign. It installs over the app and keeps its data.
+
+See the [Development Guide](docs/DEVELOPMENT.md) for prerequisites, signing, updates, data preservation and troubleshooting.
 
 ## Project Status 🏗️
 
